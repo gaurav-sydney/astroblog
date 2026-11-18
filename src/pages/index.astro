@@ -1,0 +1,55 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import NodeMotif from '../components/NodeMotif.astro';
+import Subscribe from '../components/Subscribe.astro';
+import { SITE } from '../config';
+const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const fmt = (d: Date) => d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+---
+<Base>
+  <section class="hero dark">
+    <div class="wrap grid">
+      <div>
+        <p class="eyebrow">A publication by {SITE.author}</p>
+        <h1>Automating real work, one connected step at a time.</h1>
+        <p class="lede">{SITE.tagline}</p>
+        <a class="btn" href="#subscribe">Get new issues</a>
+      </div>
+      <NodeMotif class="motif" />
+    </div>
+  </section>
+
+  <section class="wrap list">
+    <p class="eyebrow">Latest writing</p>
+    {posts.map((p) => (
+      <article class="item">
+        <a href={`/posts/${p.id}`}>
+          <span class="meta mono">Issue #{String(p.data.issue).padStart(2, '0')} · {fmt(p.data.date)}</span>
+          <h2>{p.data.title}</h2>
+          <p>{p.data.excerpt}</p>
+          <span class="read">Read the issue →</span>
+        </a>
+      </article>
+    ))}
+  </section>
+
+  <div class="dark"><div class="wrap"><Subscribe /></div></div>
+</Base>
+<style>
+  .hero { padding: 72px 0 56px; overflow: hidden; }
+  .grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); margin: 14px 0 18px; }
+  .lede { font-size: 1.15rem; opacity: .8; max-width: 540px; margin: 0 0 28px; }
+  .motif { width: 100%; height: auto; color: var(--paper); }
+  .list { padding-top: 56px; padding-bottom: 56px; }
+  .item { border-top: 1px solid var(--line); }
+  .item:last-child { border-bottom: 1px solid var(--line); }
+  .item a { display: block; padding: 28px 0; color: inherit; text-decoration: none; }
+  .item h2 { font-size: clamp(1.5rem, 3vw, 2rem); margin: 8px 0; }
+  .item p { color: var(--muted); max-width: 680px; margin: 0 0 12px; }
+  .item a:hover h2 { color: var(--teal-ink); }
+  .meta { font-size: 13px; color: var(--muted); }
+  .read { font: 600 14px var(--display); color: var(--orange); }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } .motif { max-width: 360px; } .hero { padding-top: 48px; } }
+</style>

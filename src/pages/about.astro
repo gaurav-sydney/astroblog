@@ -1,0 +1,26 @@
+---
+import Base from '../layouts/Base.astro';
+import NodeMotif from '../components/NodeMotif.astro';
+import Subscribe from '../components/Subscribe.astro';
+import { SITE } from '../config';
+---
+<Base title="About" description="What Automation Worker is, and who writes it.">
+  <section class="dark head"><div class="wrap"><p class="eyebrow">About</p><h1>Notes from the workbench.</h1></div></section>
+  <section class="wrap body">
+    <div class="prose">
+      <p><strong>Automation Worker</strong> is a publication by {SITE.author} about automating the ordinary work that keeps a business running: the website, the bookings, the member records, the newsletter, the follow-ups nobody remembers to send.</p>
+      <p>Each issue starts from a real engagement, anonymised: a sports club website and its membership workflow, a small venue's bookings, a training provider's enrolments. It looks at what was automated, what was deliberately left to a person, and how the pieces connect.</p>
+      <p>The tools change. The pattern holds: write down the process, give each step one owner, and let software do the parts that don't need judgement.</p>
+      <p>Say hello at <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+    </div>
+    <NodeMotif class="motif" width={320} />
+  </section>
+  <div class="dark"><div class="wrap"><Subscribe /></div></div>
+</Base>
+<style>
+  .head { padding: 64px 0 40px; }
+  .head h1 { font-size: clamp(2rem, 4.6vw, 3.2rem); margin: 14px 0 0; }
+  .body { padding-top: 48px; padding-bottom: 56px; display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: start; }
+  .motif { color: var(--charcoal); }
+  @media (max-width: 860px) { .body { grid-template-columns: 1fr; } .motif { display: none; } }
+</style>

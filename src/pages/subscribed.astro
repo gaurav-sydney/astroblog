@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+import NodeMotif from '../components/NodeMotif.astro';
+---
+<Base title="You're subscribed" description="Your subscription to Automation Worker is confirmed.">
+  <section class="dark box">
+    <div class="wrap">
+      <NodeMotif width={220} class="motif" />
+      <p class="eyebrow">Confirmed</p>
+      <h1>You're on the list.</h1>
+      <p>Thanks for confirming. The next issue arrives in your inbox when it's published.</p>
+      <p><a class="btn" href="/">Back to the writing</a></p>
+    </div>
+  </section>
+</Base>
+<style>
+  .box { padding: 80px 0 96px; min-height: 60vh; }
+  h1 { font-size: clamp(2rem, 5vw, 3.2rem); margin: 12px 0; }
+  .motif { color: var(--paper); margin-bottom: 20px; }
+</style>
