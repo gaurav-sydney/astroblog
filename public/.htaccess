@@ -10,6 +10,14 @@ ErrorDocument 404 /404.html
 # assistant runtime's .mjs modules (FE-122: "Failed to fetch dynamically imported module").
 AddType text/javascript .js .mjs
 
+# The assistant's files have stable names (site.js, runtime/*.js, *.json), so a long cache serves stale code after a
+# deploy: Hostinger's CDN kept the old site.js for days (FE-122). Revalidate them; hashed _astro/ CSS keeps its cache.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|mjs|json|hocon|html)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
 # Open agentic web (FE-122): the public agent files are readable by other sites and tools; the runtime's sandbox
 # worker runs under a locked-down policy. No CORS on anything else. bridge/ must stay frameable.
 <IfModule mod_headers.c>
