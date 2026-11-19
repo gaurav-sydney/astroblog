@@ -650,6 +650,8 @@ export function mountApp(root, { engine, trace, manifest, connect = null }) {
       if (!currentBot) currentBot = addBubble(msgs, "bot", clean);
       renderMarkdown(currentBot, clean);
       if (!clean) currentBot.remove();
+      // LOCAL PATCH (automationworker.io): never end a turn with nothing on screen.
+      if (!clean && !result.presentation) addBubble(msgs, "bot", "⚠️ The model returned an empty answer. Try again, or choose another model in ⚙ AI model settings.");
       renderPresentation(msgs, result.presentation, runUserTurn, result.turnId);
       requestAnimationFrame(() => { msgs.scrollTop = msgs.scrollHeight; });
     } catch (err) {

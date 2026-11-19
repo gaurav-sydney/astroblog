@@ -171,8 +171,10 @@ export class LlmClient {
     let finishReason = null;
     let usage = null;
     let model = null;
+    let streamError = null; // LOCAL PATCH (automationworker.io): providers such as OpenRouter report errors inside a 200 stream
 
     const handleChunk = (json) => {
+      if (json.error) { streamError = json.error; return; }
       if (json.model) model = json.model;
       if (json.usage) usage = json.usage;
       const choice = json.choices?.[0];
@@ -224,6 +226,10 @@ export class LlmClient {
       signal?.removeEventListener("abort", cancel);
     }
 
+    if (streamError && !content && !toolCalls.some(Boolean)) {
+      const detail = typeof streamError === "string" ? streamError : (streamError.message || JSON.stringify(streamError));
+      throw new Error(`LLM error from the provider: ${detail}${streamError.code ? ` (code ${streamError.code})` : ""}`);
+    }
     return { content, toolCalls: toolCalls.filter(Boolean), finishReason, usage, model };
   }
 

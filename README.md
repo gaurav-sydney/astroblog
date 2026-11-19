@@ -38,3 +38,12 @@ reads, to the provider the visitor picks. Nothing runs on our server: the site s
 
 - Try it locally: `node <agentic-web>/skills/agentify-website/scripts/serve_site.mjs dist --port 8080`, open
   http://127.0.0.1:8080/, add a low-limit key, and afterwards **Delete setup** and close the tab.
+
+### Local runtime patch (FE-122, 19 Nov 2026)
+
+`public/runtime/` is the skill's runtime with **two marked local patches** (search for `LOCAL PATCH`); report them
+upstream to cognizant-ai-labs/agentic-web and drop them when the runtime fixes it:
+
+- `llm.js`: an `error` object inside a streamed (HTTP 200) response, as OpenRouter sends for free-model rate limits,
+  now fails the call with the provider's message. Before, it was ignored and the turn ended with nothing on screen.
+- `ui.js`: a turn that ends with no text and no presentation now says so instead of showing nothing.
