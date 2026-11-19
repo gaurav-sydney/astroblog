@@ -54,8 +54,9 @@ export class AssistantMount {
       const needsKey = !booted.engine.mockLLM
         && (!booted.engine.byokKey || booted.engine.byokKey === "demo");
       status.textContent = needsKey
-        ? "Assistant needs your AI provider key. Add it in AI model settings below."
-        : "Assistant connected to this page.";
+        ? "Add your AI key in ⚙ AI model settings, under the chat, to start."
+        : "Connected. Ask anything about the blog.";
+      AssistantMount.addSuggestions();
       if (!needsKey) {
         AssistantMount.greet();
       }
@@ -66,6 +67,47 @@ export class AssistantMount {
       console.error("Assistant startup failed", error);
       return null;
     }
+  }
+
+  /**
+   * Questions a reader can send with one tap. Each is answerable from the posts; the last shows the confirmed action.
+   */
+  static SUGGESTIONS = [
+    "What has the blog published?",
+    "Summarise the post on MCP",
+    "Who should own the process: n8n or Windmill?",
+    "Subscribe me to new issues",
+  ];
+
+  /**
+   * Add the suggestion chips above the chat input. A tap sends the question through the chat's own input and Send
+   * button, so it follows exactly the same path as typing it; the chips go away after the first question.
+   */
+  static addSuggestions() {
+    const bar = document.querySelector("#agent-app .ns-inputbar");
+    const input = document.querySelector("#ns-input");
+    const send = document.querySelector("#ns-send");
+    if (!bar || !input || !send) {
+      return;
+    }
+    const chips = document.createElement("div");
+    chips.className = "assistant-chips";
+    chips.setAttribute("aria-label", "Suggested questions");
+    for (const question of AssistantMount.SUGGESTIONS) {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.textContent = question;
+      chip.addEventListener("click", () => {
+        input.value = question;
+        send.click();
+      });
+      chips.append(chip);
+    }
+    bar.before(chips);
+    // Any question sent, typed or tapped, starts the conversation: the input is empty once the chat has taken it.
+    const startedCheck = () => setTimeout(() => { if (!input.value) chips.remove(); }, 0);
+    send.addEventListener("click", startedCheck);
+    input.addEventListener("keydown", (event) => { if (event.key === "Enter") startedCheck(); });
   }
 
   /**

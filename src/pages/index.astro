@@ -36,11 +36,15 @@ const fmt = (d: Date) => d.toLocaleDateString('en-AU', { day: 'numeric', month: 
   </section>
 
   <section id="assistant" class="assistant wrap" aria-labelledby="assistant-heading">
-    <p class="eyebrow">Ask the blog</p>
-    <h2 id="assistant-heading">Ask Automation Worker</h2>
-    <p>Ask what the blog has published, get a post found or summarised, or subscribe to new issues. It answers only from the posts here.</p>
-    <p class="assistant-note">The assistant runs in your browser with your own AI provider key. Your messages and the posts it reads go to the provider you choose in the settings below. You confirm a subscription before anything is sent.</p>
-    <p id="assistant-status" role="status">Connecting the assistant… If this message stays, the assistant could not load. You can still read and subscribe as usual.</p>
+    <div class="assistant-intro">
+      <div>
+        <p class="eyebrow">Ask the blog</p>
+        <h2 id="assistant-heading">Ask Automation Worker</h2>
+        <p class="lede">Find a post, get it summarised, or subscribe to new issues. Answers come only from what's published here.</p>
+      </div>
+      <p id="assistant-status" role="status">Connecting the assistant…</p>
+      <p class="assistant-note">Runs in your browser on your own AI key: your messages and the posts it reads go to the provider you choose in ⚙ AI model settings. You confirm a subscription before anything is sent.</p>
+    </div>
     <div id="agent-app">
       <div data-ns-slot="header"></div>
       <div class="assistant-panels">
