@@ -4,6 +4,7 @@ import Base from '../layouts/Base.astro';
 import NodeMotif from '../components/NodeMotif.astro';
 import Subscribe from '../components/Subscribe.astro';
 import { SITE } from '../config';
+import '../styles/assistant.css';
 const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const fmt = (d: Date) => d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
 ---
@@ -34,7 +35,24 @@ const fmt = (d: Date) => d.toLocaleDateString('en-AU', { day: 'numeric', month: 
     ))}
   </section>
 
+  <section id="assistant" class="assistant wrap" aria-labelledby="assistant-heading">
+    <p class="eyebrow">Ask the blog</p>
+    <h2 id="assistant-heading">Ask Automation Worker</h2>
+    <p>Ask what the blog has published, get a post found or summarised, or subscribe to new issues. It answers only from the posts here.</p>
+    <p class="assistant-note">The assistant runs in your browser with your own AI provider key. Your messages and the posts it reads go to the provider you choose in the settings below. You confirm a subscription before anything is sent.</p>
+    <p id="assistant-status" role="status">Connecting the assistant… If this message stays, the assistant could not load. You can still read and subscribe as usual.</p>
+    <div id="agent-app">
+      <div data-ns-slot="header"></div>
+      <div class="assistant-panels">
+        <div data-ns-slot="chat"></div>
+        <div data-ns-slot="agents"></div>
+      </div>
+      <div data-ns-slot="settings"></div>
+    </div>
+  </section>
+
   <div class="dark"><div class="wrap"><Subscribe /></div></div>
+  <script is:inline type="module" src="/site.js"></script>
 </Base>
 <style>
   .hero { padding: 72px 0 56px; overflow: hidden; }

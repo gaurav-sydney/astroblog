@@ -1,0 +1,18 @@
+{
+  "protocol": "nsdeploy-link/v1",
+  "exports": [
+    {
+      "network": "automation_worker_assistant",
+      "front_man": "automation_worker_guide",
+      "aliases": [
+        "automation_worker_assistant",
+        "automation_worker_guide"
+      ],
+      "url": "automation_worker_assistant"
+    }
+  ],
+  "imports": [],
+  "link_updates": {
+    "mode": "browser-local"
+  }
+}

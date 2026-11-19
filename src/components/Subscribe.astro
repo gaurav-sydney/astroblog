@@ -21,6 +21,7 @@ const live = BREVO_FORM_ACTION.startsWith('https://');
   ) : (
     <p><a class="btn" href={`mailto:${SITE.email}?subject=Subscribe`}>Subscribe by email</a></p>
   )}
+  {!compact && <p class="fine" id="subscribe-status" role="status"></p>}
 </section>
 <style>
   .subscribe { padding: 40px 0; }
