@@ -96,7 +96,7 @@ body > dialog button { margin-right: 8px; }
 
 /* Blog-specific: the assistant sits in a light section between the post list and the dark subscribe band. The
    site's .btn and global button rules do not apply to the runtime's buttons. On a phone, a shorter chat. */
-.assistant { padding: 0 0 56px; margin-top: 0; }
+.assistant { padding-bottom: 56px; margin-top: 0; }   /* keep .wrap's side gutter */
 .assistant h2 { font-size: clamp(1.5rem, 3vw, 2rem); margin: 10px 0 8px; }
 .assistant p { max-width: 680px; }
 .assistant-note, #assistant-status { font-size: 14px; color: var(--muted); }
