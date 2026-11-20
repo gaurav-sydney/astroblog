@@ -1,0 +1,22 @@
+{
+ "twin_config": {"doi_template_id": 7, "from_email": "hello@automationworker.io"},
+ "cases": [
+  {"name": "a reader is asked to confirm", "trigger": "Capability call",
+   "request": {"headers": {"X-Tenant": "automation-worker"}, "body": {"email": "reader@example.com"}},
+   "expect": {"answer": {"status": "ok", "data": {"email": "reader@example.com", "status": "confirmation-requested"}},
+              "pending": ["reader@example.com"], "on_list": []}},
+  {"name": "the site form subscribes without the secret", "trigger": "Site form",
+   "request": {"headers": {}, "body": {"email": "form@example.com", "website": ""}},
+   "expect": {"answer": {"status": "ok", "data": {"email": "form@example.com", "status": "confirmation-requested"}},
+              "pending": ["form@example.com"], "on_list": []}},
+  {"name": "a bot filling the honeypot is refused", "trigger": "Site form",
+   "request": {"headers": {}, "body": {"email": "bot@example.com", "website": "http://spam"}},
+   "expect": {"answer": {"status": "failed", "error": "refused", "retryable": false}, "pending": []}},
+  {"name": "another tenant is refused", "trigger": "Capability call",
+   "request": {"headers": {"X-Tenant": "wpcg"}, "body": {"email": "reader@example.com"}},
+   "expect": {"answer": {"status": "failed", "error": "not authorised for this tenant", "retryable": false}, "pending": []}},
+  {"name": "an invalid email is refused", "trigger": "Capability call",
+   "request": {"headers": {"X-Tenant": "automation-worker"}, "body": {"email": "not-an-email"}},
+   "expect": {"answer": {"status": "failed", "error": "a valid email is required", "retryable": false}, "pending": []}}
+ ]
+}

@@ -1,4 +1,27 @@
-# Automation Worker — blog (automationworker.io)
+# Automation Worker (automationworker.io)
+
+Gaurav's own publication, and everything that runs it: the blog, its in-page assistant and its newsletter binding.
+This repo uses the FRACTEDGE-platform delivery layout. Its root is `delivery/automation-worker/`: `business.yaml`
+names the domains, each domain lists its capabilities, and each capability is a bundle
+(`capabilities/<domain>/<capability>/`) with its manifest, features, integrations, tests and evidence. The Astro app
+stays at the root, because Astro needs `src/` and `public/` there; bundles point to its files.
+
+## Map
+
+| Path | What it holds | State |
+| --- | --- | --- |
+| `business.yaml` | The business manifest (domains: communications, content, experience) | |
+| `capabilities/content/blog/` | The blog product: launch and posts features, Hostinger integration, live evidence | Live |
+| `capabilities/experience/site-assistant/` | The agentic-web assistant (FE-122): feature, runtime map, contract tests, live checks, evidence | Live; FE-125 open |
+| `capabilities/communications/newsletter/` | The newsletter binding (DP-033): the live Brevo form, and the n8n subscribe and broadcast workflows with contracts, fixtures and tests | Form live; n8n deployed inactive |
+| `docs/` | The runbook, the launch handoff, DP-033 and the end-to-end review ([docs/README.md](docs/README.md)) | |
+| `src/`, `public/` | The Astro site and the assistant files it serves | |
+
+Factory code (the newsletter capability, the Brevo adapter and twin, the Windmill flows) stays in FRACTEDGE-platform.
+`capabilities/communications/newsletter/tests/` runs against a checkout of it:
+`FRACTEDGE_PLATFORM=~/fractedge pytest capabilities/communications/newsletter/tests`.
+
+## Site
 
 Astro static site. Palette charcoal `#15171C` / off-white `#F5F3EE` / teal `#10B5A6` / orange `#EA6B2E`;
 Space Grotesk + Inter + JetBrains Mono; connected-node motif (`src/components/NodeMotif.astro`).
@@ -9,7 +32,7 @@ Space Grotesk + Inter + JetBrains Mono; connected-node motif (`src/components/No
 - Posts: `src/content/posts/*.md` (frontmatter: title, excerpt, date, issue, tags, draft).
 - Subscribe: Brevo's native form (double opt-in, list 2, redirect `/subscribed`), posted as plain HTML so it works
   with no script. Without `PUBLIC_BREVO_FORM_ACTION` the form falls back to a mailto link.
-- Deploy: upload `dist/` (including `.htaccess`, which forces HTTPS) to the site's `public_html` on Hostinger.
+- Deploy: [`docs/runbooks/AGENTIFY-STATIC-SITE.md`](docs/runbooks/AGENTIFY-STATIC-SITE.md) (zip `dist/`, including `.htaccess`, upload, deploy, purge, check live).
 - Broadcast-on-publish (DP-033) is not wired yet and stays off until enabled.
 
 ## On-page assistant (open agentic website, FE-122)
@@ -34,7 +57,7 @@ reads, to the provider the visitor picks. Nothing runs on our server: the site s
 - Rebuild the network after editing the `.hocon` or the manifest (never edit generated files), then test:
 
       node <agentic-web>/skills/agentify-website/scripts/build_network.mjs public/automation_worker_assistant.hocon --manifest public/agent-manifest.json
-      npm run build && node --test "agent-tests/*.test.mjs"
+      npm run build && node --test "capabilities/experience/site-assistant/tests/*.test.mjs"
 
 - Try it locally: `node <agentic-web>/skills/agentify-website/scripts/serve_site.mjs dist --port 8080`, open
   http://127.0.0.1:8080/, add a low-limit key, and afterwards **Delete setup** and close the tab.

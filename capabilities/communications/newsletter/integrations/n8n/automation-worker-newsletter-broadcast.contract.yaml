@@ -1,0 +1,20 @@
+# Contract of the n8n workflow automation-worker-newsletter-broadcast.workflow.json (DP-033 S4).
+# Reproduces capabilities/communications/newsletter/integrations/n8n/vendors/brevo.py Brevo.send_broadcast.
+operation: campaign.send_broadcast
+workflow: automation-worker · newsletter · campaign.send_broadcast
+triggers:
+  capability:                     # Windmill f/newsletter/broadcast (started by the Astro deploy webhook)
+    path: newsletter/automation-worker/campaign.send_broadcast
+    auth: header
+    headers: {X-Tenant: automation-worker, Idempotency-Key: "automation-worker:broadcast:<post id>"}
+    body: {post: {id: "optional; default the url's slug", title: string, url: string, excerpt: string, html: string}}
+answers:
+  ok: {status: ok, data: {campaign_id: string}}    # the same id for every re-publish of the post
+  refused: {status: failed, error: string, retryable: false}
+  vendor_failure: {status: failed, error: "Brevo: ...", retryable: true}
+vendor_calls:
+  - "GET https://api.brevo.com/v3/emailCampaigns?type=classic&limit=100&offset=0&sort=desc&excludeHtmlContent=true"
+  - "POST https://api.brevo.com/v3/emailCampaigns {name: 'post:<id>', subject: title, htmlContent, sender {name, email}, recipients {listIds: [list_id]}}"   # only when no campaign has that name
+  - "POST https://api.brevo.com/v3/emailCampaigns/{id}/sendNow"   # for a new campaign, or a draft a failed send left
+vendor_credential: {type: sendInBlueApi, name: Brevo account}
+config: [tenant, list_id, from_name, from_email]

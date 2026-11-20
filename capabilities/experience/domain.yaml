@@ -1,0 +1,9 @@
+# Domain parent manifest. Children are capability ids. Checked by factory/studio/repo_tree.py.
+schema_version: '0.1'
+kind: domain
+workspace: delivery
+business: automation-worker
+domain: experience
+title: Experience
+capabilities:
+- site-assistant

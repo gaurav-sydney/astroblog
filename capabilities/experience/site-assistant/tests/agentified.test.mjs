@@ -1,7 +1,7 @@
 // FE-122: the agentified blog's network, manifest and actions work together, through the real runtime and the real
 // page code, with a scripted model. No LLM provider is called.
 // Adapted from the agentify-website skill's templates/tests/agentified.test.mjs (cognizant-ai-labs/agentic-web).
-// Run after a build:  npm run build && node --test "agent-tests/*.test.mjs"
+// Run after a build:  npm run build && node --test "capabilities/experience/site-assistant/tests/*.test.mjs"
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -10,7 +10,7 @@ import { StubElement } from "./stub_element.mjs";
 import { StubOption } from "./stub_option.mjs";
 import { ScriptedModel } from "./scripted_model.mjs";
 
-const SITE = new URL("../dist/", import.meta.url);
+const SITE = new URL("../../../../dist/", import.meta.url);
 const NETWORK_NAME = "automation_worker_assistant";
 const BASE = "http://localhost:8080";
 const CALL_BUDGET = 16000;

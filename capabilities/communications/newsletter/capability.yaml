@@ -1,0 +1,23 @@
+schema_version: "0.1"
+workspace: delivery
+business: automation-worker
+domain: communications
+capability_id: newsletter
+title: Automation Worker blog newsletter
+outcome: Automation Worker's subscription to the Factory newsletter capability for its blog, bound to Brevo (subscribe by double opt-in, one broadcast per published post).
+status: REFINED
+runtime_evidence_state: UNAVAILABLE
+derived_from: capabilities/communications/newsletter
+integrations:
+  # Live today: the site posts Brevo's own subscription form (list 2, double opt-in). No factory code on the path.
+  - integration_id: automation-worker-brevo-form
+    engine: provider-native
+    source: integrations/brevo-form/README.md
+    status: IMPLEMENTED
+    runtime_evidence_state: UNAVAILABLE
+  # Later (DP-033): the factory capability's subscribe and broadcast, executed by n8n. Deployed inactive.
+  - integration_id: automation-worker-newsletter-bindings
+    engine: n8n
+    source: integrations/n8n/bindings.yaml
+    status: REFINED
+    runtime_evidence_state: UNAVAILABLE

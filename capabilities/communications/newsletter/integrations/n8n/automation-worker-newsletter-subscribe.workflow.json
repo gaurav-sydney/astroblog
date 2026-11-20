@@ -1,0 +1,242 @@
+{
+ "name": "automation-worker · newsletter · audience.subscribe",
+ "nodes": [
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "newsletter/automation-worker/audience.subscribe",
+    "responseMode": "responseNode",
+    "options": {},
+    "authentication": "headerAuth"
+   },
+   "id": "810b5c93-e6be-57f4-afa1-2470f3f918a0",
+   "name": "Capability call",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2.1,
+   "position": [
+    -900,
+    -100
+   ],
+   "webhookId": "ba3af23c-a4f3-5dee-9e91-b1b55d993929",
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "TO_BIND",
+     "name": "Automation Worker Newsletter Bridge"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "automation-worker/subscribe",
+    "responseMode": "responseNode",
+    "options": {}
+   },
+   "id": "bc219d6c-64a8-538e-8636-9f58b6d90a26",
+   "name": "Site form",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2.1,
+   "position": [
+    -900,
+    100
+   ],
+   "webhookId": "523b0beb-dd4e-5645-a8ae-fe946effcf94"
+  },
+  {
+   "parameters": {
+    "jsCode": "const CONFIG = {           // = vendor_config in delivery/automation-worker/.../integrations/n8n/bindings.yaml\n  tenant: 'automation-worker',\n  list_id: 2,                  // automation-worker-subscribers\n  doi_template_id: null,       // TO SET: the Brevo double opt-in template id\n  redirect_url: 'https://automationworker.io/subscribed',\n  from_name: 'Automation Worker',\n  from_email: null,            // TO SET: the authenticated automationworker.io sender\n};\n// audience.subscribe: hand the reader to Brevo's double opt-in and stop (vendors/brevo.py Brevo.subscribe).\nconst req = $input.first().json, h = req.headers || {}, b = req.body || {};\nconst fromForm = $('Site form').isExecuted;\nconst fail = (error, retryable = false) => [{ json: { ok: false, error, retryable } }];\nif (!fromForm && h['x-tenant'] !== CONFIG.tenant) return fail('not authorised for this tenant');\nif (fromForm && b.website) return fail('refused');                       // honeypot field the site hides\nconst email = String(b.email || '').trim();\nif (!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(email)) return fail('a valid email is required');\nif (!CONFIG.doi_template_id) return fail('doi_template_id is not configured');\nconst brevo = { email, includeListIds: [CONFIG.list_id], templateId: CONFIG.doi_template_id,\n                redirectionUrl: CONFIG.redirect_url };\nif (!fromForm && b.attributes && Object.keys(b.attributes).length) brevo.attributes = b.attributes;\nreturn [{ json: { ok: true, email, brevo } }];"
+   },
+   "id": "bcf5ebd1-c7d2-5b56-a805-a3465730b339",
+   "name": "Check request",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    -660,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "b6f15f1b-592e-5459-b26e-539ae414a2ed",
+       "leftValue": "={{ $json.ok }}",
+       "rightValue": "",
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ],
+     "combinator": "and"
+    },
+    "options": {}
+   },
+   "id": "ba122718-d9ee-567d-9bb3-0c9877fc1e55",
+   "name": "Valid?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    -440,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "https://api.brevo.com/v3/contacts/doubleOptinConfirmation",
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "sendInBlueApi",
+    "options": {},
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.brevo) }}"
+   },
+   "id": "6c433cc4-f975-50f4-b8f5-48663da459dc",
+   "name": "Brevo double opt-in",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    -200,
+    -100
+   ],
+   "credentials": {
+    "sendInBlueApi": {
+     "id": "r4izHGECKFVMFYeX",
+     "name": "Brevo account"
+    }
+   },
+   "onError": "continueErrorOutput"
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({status: \"ok\", data: {email: $(\"Check request\").first().json.email, status: \"confirmation-requested\"}}) }}",
+    "options": {}
+   },
+   "id": "dad2ea45-cb5d-5b96-bd49-f32aba879b8e",
+   "name": "Answer ok",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.5,
+   "position": [
+    60,
+    -200
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({status: \"failed\", error: \"Brevo: \" + ($json.error && ($json.error.message || JSON.stringify($json.error)) || \"request failed\"), retryable: true}) }}",
+    "options": {}
+   },
+   "id": "a80705aa-ce79-55e4-a296-b98ea0c39376",
+   "name": "Answer vendor failure",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.5,
+   "position": [
+    60,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({status: \"failed\", error: $json.error, retryable: $json.retryable === true}) }}",
+    "options": {}
+   },
+   "id": "152721c9-b3d0-550e-a158-275d608dc01e",
+   "name": "Answer refused",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.5,
+   "position": [
+    -200,
+    160
+   ]
+  }
+ ],
+ "connections": {
+  "Capability call": {
+   "main": [
+    [
+     {
+      "node": "Check request",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Site form": {
+   "main": [
+    [
+     {
+      "node": "Check request",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Check request": {
+   "main": [
+    [
+     {
+      "node": "Valid?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Valid?": {
+   "main": [
+    [
+     {
+      "node": "Brevo double opt-in",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Answer refused",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Brevo double opt-in": {
+   "main": [
+    [
+     {
+      "node": "Answer ok",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Answer vendor failure",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ },
+ "meta": {
+  "source": "DP-033 S4; reproduces capabilities/communications/newsletter/integrations/n8n/vendors/brevo.py"
+ }
+}
