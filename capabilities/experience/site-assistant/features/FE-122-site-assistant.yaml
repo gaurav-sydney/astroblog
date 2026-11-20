@@ -1,0 +1,26 @@
+feature_id: FE-122
+status: IMPLEMENTED
+outcome: Agentify automationworker.io for the Open Agentic Web challenge (scope B), with content Q&A over the posts and a confirmed Brevo subscribe, so visitors and other sites' agents can use the site through an assistant.
+acceptance:
+  - the assistant boots on the live site at 1280 px and 390 px with no horizontal page overflow
+  - answers about the blog come only from website_list_posts, website_read_post and website_search_posts, over the real posts collection
+  - read_post accepts only ids of published posts (enum)
+  - website_subscribe is irreversible; the visitor confirms in a dialog that names the email; declining sends nothing
+  - an approved subscribe posts the site's own Brevo form once, the same request the page's form makes
+  - without a Brevo form the subscribe refuses with the contact address
+  - no key, token or email address is in any published file
+  - a provider error, including one sent inside an HTTP 200 stream, is shown in the chat instead of a silent blank
+  - the chat matches the site brand (charcoal header, paper messages, teal send, suggestion chips)
+  - one model call stays within 16000 characters
+explicit_constraints:
+  - BYOK: the visitor's own model key, kept in their browser; never asked for in any chat
+  - static site, nothing server-side
+  - runtime copied from the agentify-website skill; local changes only as marked LOCAL PATCH, reported upstream
+  - peer policy closed
+classification: integration
+open_items:
+  - FE-125 founder BYOK check in Safari, Chrome and on a phone (founder action)
+  - FE-126 challenge submission (founder call)
+  - report the two LOCAL PATCHes upstream
+tests: tests/agentified.test.mjs
+linear: [FE-122, FE-123, FE-124, FE-125, FE-126, FE-127]

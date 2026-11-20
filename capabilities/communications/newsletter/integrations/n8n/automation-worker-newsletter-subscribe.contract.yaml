@@ -1,0 +1,22 @@
+# Contract of the n8n workflow automation-worker-newsletter-subscribe.workflow.json (DP-033 S4).
+# Reproduces capabilities/communications/newsletter/integrations/n8n/vendors/brevo.py Brevo.subscribe.
+operation: audience.subscribe
+workflow: automation-worker · newsletter · audience.subscribe
+triggers:
+  capability:                     # Windmill (f/newsletter/subscribe via the tenant resource's base_url)
+    path: newsletter/automation-worker/audience.subscribe
+    auth: header                  # credential "Automation Worker Newsletter Bridge": Authorization: Bearer <secret>
+    headers: {X-Tenant: automation-worker, Idempotency-Key: "automation-worker:subscribe:<email>"}
+    body: {email: string, attributes: "object, optional; Brevo attributes that exist in the account"}
+  site_form:                      # the automationworker.io form; public, so no secret and no attributes
+    path: automation-worker/subscribe
+    auth: none
+    body: {email: string, website: "honeypot; must be empty"}
+answers:
+  ok: {status: ok, data: {email: string, status: confirmation-requested}}
+  refused: {status: failed, error: string, retryable: false}       # bad tenant, bad email, unset config
+  vendor_failure: {status: failed, error: "Brevo: ...", retryable: true}
+vendor_calls:
+  - "POST https://api.brevo.com/v3/contacts/doubleOptinConfirmation {email, includeListIds: [list_id], templateId: doi_template_id, redirectionUrl: redirect_url, attributes?}"
+vendor_credential: {type: sendInBlueApi, name: Brevo account}
+config: [tenant, list_id, doi_template_id, redirect_url]      # = bindings.yaml vendor_config, in the "Check request" node

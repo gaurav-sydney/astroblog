@@ -1,0 +1,88 @@
+{
+ "twin_config": {
+  "doi_template_id": 7,
+  "from_email": "hello@automationworker.io"
+ },
+ "sequential": true,
+ "given_confirmed": [
+  "reader@example.com"
+ ],
+ "post": {
+  "title": "What an agentic website actually is",
+  "url": "https://automationworker.io/blog/what-is-an-agentic-website/",
+  "excerpt": "Not a chatbot on a brochure.",
+  "html": "<p>Not a chatbot on a brochure.</p>"
+ },
+ "cases": [
+  {
+   "name": "a published post is sent once",
+   "trigger": "Capability call",
+   "request": {
+    "headers": {
+     "X-Tenant": "automation-worker"
+    },
+    "body": {
+     "post": "$post"
+    }
+   },
+   "expect": {
+    "answer": {
+     "status": "ok",
+     "data": {
+      "campaign_id": "1"
+     }
+    },
+    "campaigns": 1,
+    "sent_to": [
+     "reader@example.com"
+    ]
+   }
+  },
+  {
+   "name": "a re-publish finds the campaign and sends nothing",
+   "trigger": "Capability call",
+   "request": {
+    "headers": {
+     "X-Tenant": "automation-worker"
+    },
+    "body": {
+     "post": "$post"
+    }
+   },
+   "expect": {
+    "answer": {
+     "status": "ok",
+     "data": {
+      "campaign_id": "1"
+     }
+    },
+    "campaigns": 1,
+    "sent_to": [
+     "reader@example.com"
+    ]
+   }
+  },
+  {
+   "name": "a post without a url is refused",
+   "trigger": "Capability call",
+   "request": {
+    "headers": {
+     "X-Tenant": "automation-worker"
+    },
+    "body": {
+     "post": {
+      "title": "x"
+     }
+    }
+   },
+   "expect": {
+    "answer": {
+     "status": "failed",
+     "error": "post.title and post.url are required",
+     "retryable": false
+    },
+    "campaigns": 1
+   }
+  }
+ ]
+}

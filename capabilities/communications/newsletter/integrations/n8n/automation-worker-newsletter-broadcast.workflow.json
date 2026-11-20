@@ -1,0 +1,500 @@
+{
+ "name": "automation-worker · newsletter · campaign.send_broadcast",
+ "nodes": [
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "newsletter/automation-worker/campaign.send_broadcast",
+    "responseMode": "responseNode",
+    "options": {},
+    "authentication": "headerAuth"
+   },
+   "id": "810b5c93-e6be-57f4-afa1-2470f3f918a0",
+   "name": "Capability call",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2.1,
+   "position": [
+    -900,
+    0
+   ],
+   "webhookId": "f92ea955-4625-5676-b822-67f04f6f1a9d",
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "TO_BIND",
+     "name": "Automation Worker Newsletter Bridge"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const CONFIG = {           // = vendor_config in delivery/automation-worker/.../integrations/n8n/bindings.yaml\n  tenant: 'automation-worker',\n  list_id: 2,                  // automation-worker-subscribers\n  doi_template_id: null,       // TO SET: the Brevo double opt-in template id\n  redirect_url: 'https://automationworker.io/subscribed',\n  from_name: 'Automation Worker',\n  from_email: null,            // TO SET: the authenticated automationworker.io sender\n};\n// campaign.send_broadcast: one campaign per post, named post:<id> (vendors/brevo.py Brevo.send_broadcast).\nconst req = $input.first().json, h = req.headers || {}, post = (req.body || {}).post || {};\nconst fail = (error) => [{ json: { ok: false, error, retryable: false } }];\nif (h['x-tenant'] !== CONFIG.tenant) return fail('not authorised for this tenant');\nif (!post.title || !post.url) return fail('post.title and post.url are required');\nif (!CONFIG.from_email) return fail('from_email is not configured');\nconst id = post.id || String(post.url).split('?')[0].split('#')[0].replace(/\\/+$/, '').split('/').pop();\nif (!id) return fail('a post needs an id or a url with a slug');\nconst esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#x27;');\nconst link = `<p><a href=\"${esc(post.url)}\">Read \"${esc(post.title)}\" on the blog</a></p>`;\nconst html = post.html ? post.html + link : `<h1>${esc(post.title)}</h1><p>${esc(post.excerpt || '')}</p>${link}`;\nreturn [{ json: { ok: true, post: id, create: { name: `post:${id}`, subject: post.title, htmlContent: html,\n  sender: { name: CONFIG.from_name, email: CONFIG.from_email }, recipients: { listIds: [CONFIG.list_id] } } } }];"
+   },
+   "id": "bcf5ebd1-c7d2-5b56-a805-a3465730b339",
+   "name": "Check request",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    -660,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "b6f15f1b-592e-5459-b26e-539ae414a2ed",
+       "leftValue": "={{ $json.ok }}",
+       "rightValue": "",
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ],
+     "combinator": "and"
+    },
+    "options": {}
+   },
+   "id": "ba122718-d9ee-567d-9bb3-0c9877fc1e55",
+   "name": "Valid?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    -440,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "method": "GET",
+    "url": "https://api.brevo.com/v3/emailCampaigns",
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "sendInBlueApi",
+    "options": {},
+    "sendQuery": true,
+    "queryParameters": {
+     "parameters": [
+      {
+       "name": "type",
+       "value": "classic"
+      },
+      {
+       "name": "limit",
+       "value": "100"
+      },
+      {
+       "name": "offset",
+       "value": "0"
+      },
+      {
+       "name": "sort",
+       "value": "desc"
+      },
+      {
+       "name": "excludeHtmlContent",
+       "value": "true"
+      }
+     ]
+    }
+   },
+   "id": "23e930b3-ad00-5db5-b235-acda45e698ca",
+   "name": "Earlier campaigns",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    -200,
+    -100
+   ],
+   "credentials": {
+    "sendInBlueApi": {
+     "id": "r4izHGECKFVMFYeX",
+     "name": "Brevo account"
+    }
+   },
+   "onError": "continueErrorOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "// Brevo is the sent-log: an earlier campaign named post:<id> is never sent again; a draft left by a failed\n// sendNow is sent, not duplicated.\nconst want = $('Check request').first().json.create.name;\nconst found = ($input.first().json.campaigns || []).find((c) => c.name === want);\nconst action = !found ? 'create' : (found.status === 'draft' ? 'send' : 'done');\nreturn [{ json: { action, id: found ? found.id : null } }];"
+   },
+   "id": "ae860ca5-2009-5cc1-9a82-3c0e06d0a3c6",
+   "name": "Decide",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    0,
+    -100
+   ]
+  },
+  {
+   "parameters": {
+    "rules": {
+     "values": [
+      {
+       "conditions": {
+        "options": {
+         "caseSensitive": true,
+         "leftValue": "",
+         "typeValidation": "strict",
+         "version": 2
+        },
+        "conditions": [
+         {
+          "id": "25586203-592c-5a7a-9cd0-15a20a8ffcd6",
+          "leftValue": "={{ $json.action }}",
+          "rightValue": "done",
+          "operator": {
+           "type": "string",
+           "operation": "equals"
+          }
+         }
+        ],
+        "combinator": "and"
+       },
+       "renameOutput": true,
+       "outputKey": "done"
+      },
+      {
+       "conditions": {
+        "options": {
+         "caseSensitive": true,
+         "leftValue": "",
+         "typeValidation": "strict",
+         "version": 2
+        },
+        "conditions": [
+         {
+          "id": "52485308-7963-521d-b1e8-02faec93af87",
+          "leftValue": "={{ $json.action }}",
+          "rightValue": "send",
+          "operator": {
+           "type": "string",
+           "operation": "equals"
+          }
+         }
+        ],
+        "combinator": "and"
+       },
+       "renameOutput": true,
+       "outputKey": "send"
+      },
+      {
+       "conditions": {
+        "options": {
+         "caseSensitive": true,
+         "leftValue": "",
+         "typeValidation": "strict",
+         "version": 2
+        },
+        "conditions": [
+         {
+          "id": "fd7b9e6e-ffde-5a22-a2e4-7baecf5a6df8",
+          "leftValue": "={{ $json.action }}",
+          "rightValue": "create",
+          "operator": {
+           "type": "string",
+           "operation": "equals"
+          }
+         }
+        ],
+        "combinator": "and"
+       },
+       "renameOutput": true,
+       "outputKey": "create"
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "5a5146cd-e2b9-5e91-976a-ca554722150c",
+   "name": "Route",
+   "type": "n8n-nodes-base.switch",
+   "typeVersion": 3.2,
+   "position": [
+    180,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "https://api.brevo.com/v3/emailCampaigns",
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "sendInBlueApi",
+    "options": {},
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($(\"Check request\").first().json.create) }}"
+   },
+   "id": "6b2881c5-2b8a-532f-8c28-cc3afd6a69c1",
+   "name": "Create campaign",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    420,
+    100
+   ],
+   "credentials": {
+    "sendInBlueApi": {
+     "id": "r4izHGECKFVMFYeX",
+     "name": "Brevo account"
+    }
+   },
+   "onError": "continueErrorOutput"
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "=https://api.brevo.com/v3/emailCampaigns/{{ $json.id }}/sendNow",
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "sendInBlueApi",
+    "options": {}
+   },
+   "id": "adeb30c5-d9d6-56c8-9b62-e3dd7b9d5203",
+   "name": "Send now",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    660,
+    0
+   ],
+   "credentials": {
+    "sendInBlueApi": {
+     "id": "r4izHGECKFVMFYeX",
+     "name": "Brevo account"
+    }
+   },
+   "onError": "continueErrorOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "const id = $('Create campaign').isExecuted ? $('Create campaign').first().json.id : $('Decide').first().json.id;\nreturn [{ json: { status: 'ok', data: { campaign_id: String(id) } } }];"
+   },
+   "id": "b8285e52-a691-52ab-bcca-c9a6fe4eed9e",
+   "name": "Answer",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    880,
+    -100
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify($json) }}",
+    "options": {}
+   },
+   "id": "dad2ea45-cb5d-5b96-bd49-f32aba879b8e",
+   "name": "Answer ok",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.5,
+   "position": [
+    1100,
+    -100
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({status: \"ok\", data: {campaign_id: String($json.id)}}) }}",
+    "options": {}
+   },
+   "id": "2a2afd65-9c56-5ad4-a54d-7ca27f12f4c8",
+   "name": "Answer already sent",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.5,
+   "position": [
+    420,
+    -260
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({status: \"failed\", error: \"Brevo: \" + ($json.error && ($json.error.message || JSON.stringify($json.error)) || \"request failed\"), retryable: true}) }}",
+    "options": {}
+   },
+   "id": "a80705aa-ce79-55e4-a296-b98ea0c39376",
+   "name": "Answer vendor failure",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.5,
+   "position": [
+    1100,
+    160
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({status: \"failed\", error: $json.error, retryable: $json.retryable === true}) }}",
+    "options": {}
+   },
+   "id": "152721c9-b3d0-550e-a158-275d608dc01e",
+   "name": "Answer refused",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.5,
+   "position": [
+    -200,
+    160
+   ]
+  }
+ ],
+ "connections": {
+  "Capability call": {
+   "main": [
+    [
+     {
+      "node": "Check request",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Check request": {
+   "main": [
+    [
+     {
+      "node": "Valid?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Valid?": {
+   "main": [
+    [
+     {
+      "node": "Earlier campaigns",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Answer refused",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Earlier campaigns": {
+   "main": [
+    [
+     {
+      "node": "Decide",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Answer vendor failure",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Decide": {
+   "main": [
+    [
+     {
+      "node": "Route",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Route": {
+   "main": [
+    [
+     {
+      "node": "Answer already sent",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Send now",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Create campaign",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Create campaign": {
+   "main": [
+    [
+     {
+      "node": "Send now",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Answer vendor failure",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Send now": {
+   "main": [
+    [
+     {
+      "node": "Answer",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Answer vendor failure",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Answer": {
+   "main": [
+    [
+     {
+      "node": "Answer ok",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ },
+ "meta": {
+  "source": "DP-033 S4; reproduces capabilities/communications/newsletter/integrations/n8n/vendors/brevo.py"
+ }
+}
