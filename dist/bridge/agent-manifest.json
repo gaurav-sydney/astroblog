@@ -1,0 +1,10 @@
+{
+  "networks": [
+    {
+      "name": "automation_worker_assistant"
+    }
+  ],
+  "actions": {
+    "version": 1
+  }
+}

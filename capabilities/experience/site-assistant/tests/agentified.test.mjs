@@ -137,15 +137,18 @@ test("the reads answer from the real posts collection and change nothing", async
   const before = document.snapshot();
   const list = (await run(reg, "list_posts", {})).result;
   assert.equal(list.count, content.posts.length);
-  assert.equal(list.posts[0].id, POST);
-  assert.equal(list.posts[0].url, "https://automationworker.io/posts/the-agentic-web/");
+  // Look the post up by id: new posts are listed first, and a content update must not break this contract.
+  const listed = list.posts.find((p) => p.id === POST);
+  assert.ok(listed, `${POST} is not listed`);
+  assert.equal(listed.url, "https://automationworker.io/posts/the-agentic-web/");
+  assert.deepEqual(list.posts.map((p) => p.date), [...list.posts.map((p) => p.date)].sort().reverse(), "posts are newest first");
   assert.equal(list.contact, "hello@automationworker.io");
   const post = (await run(reg, "read_post", { id: POST })).result;
   assert.equal(post.ok, true);
   assert.ok(post.text.includes("Most of that work happens in the back office."));
   assert.ok(!post.text.includes("##") && !post.text.includes("](") , "Markdown left in the text");
   const found = (await run(reg, "search_posts", { query: "what an agent needs from a website" })).result;
-  assert.equal(found.results[0].id, POST);
+  assert.ok(found.results.slice(0, 3).some((r) => r.id === POST), "the post about what an agent needs is not in the top results");
   assert.ok(found.results[0].passage.length > 0);
   assert.deepEqual((await run(reg, "search_posts", { query: "kubernetes quantum" })).result.results, []);
   assert.equal(App.page.readPost("no-such-post").ok, false);

@@ -1,0 +1,99 @@
+# STAGED: GitHub runs this only from .github/workflows/deliver.yml. It lives here until the push token has the
+# Workflows permission; then: git mv deploy/ci/deliver.yml .github/workflows/deliver.yml
+# Automation Worker continuous delivery.
+#   Pull request      → verify: the gates for the change type (content, brand, feature, newsletter, pipeline) plus the
+#                       baseline, with screenshots as an artifact for the one human review.
+#   Push to default   → verify again, deploy dist/ to Hostinger by API, verify live, roll back to the previous
+#                       release automatically if the live check fails.
+#   Manual run        → redeploy any ref (rollback or re-release), with the same live check.
+# One deploy at a time (concurrency). Secrets: HOSTINGER_API_TOKEN, HOSTINGER_USERNAME (the account id is a secret
+# here so it never appears in a log of this public repo). Until both exist the deploy job is skipped, not failed.
+name: deliver
+
+on:
+  pull_request:
+  push:
+    branches: [claude/blog-launch]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref whose committed dist/ to deploy (a rollback is the previous release's commit)
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  PLAYWRIGHT_VERSION: 1.55.0
+
+jobs:
+  verify:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Headless Chromium for the rendered and chat gates
+        run: npx -y playwright@${PLAYWRIGHT_VERSION} install --with-deps chromium-headless-shell
+      - name: Gates for this change
+        run: |
+          if [ "${{ github.event_name }}" = pull_request ]; then BASE=origin/${{ github.base_ref }}
+          elif [ "${{ github.event.before }}" != 0000000000000000000000000000000000000000 ]; then BASE=${{ github.event.before }}
+          else BASE=HEAD~1; fi
+          node tests/run.mjs --changed "$BASE"
+      - name: Report
+        if: always()
+        run: cat reports/summary.md >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: verification-${{ github.sha }}, path: reports/, retention-days: 30 }
+
+  deploy:
+    needs: verify
+    if: always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && needs.verify.result == 'success'))
+    runs-on: ubuntu-24.04
+    environment: production
+    concurrency: { group: deploy-production, cancel-in-progress: false }
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - name: Check the deploy secrets
+        id: secrets
+        env: { T: "${{ secrets.HOSTINGER_API_TOKEN }}", U: "${{ secrets.HOSTINGER_USERNAME }}" }
+        run: |
+          if [ -n "$T" ] && [ -n "$U" ]; then echo "ready=true" >> "$GITHUB_OUTPUT"
+          else echo "ready=false" >> "$GITHUB_OUTPUT"; echo "::notice::HOSTINGER_API_TOKEN or HOSTINGER_USERNAME is not set: deploy skipped"; fi
+      - name: Headless Chromium for the live check
+        if: steps.secrets.outputs.ready == 'true'
+        run: npx -y playwright@${PLAYWRIGHT_VERSION} install --with-deps chromium-headless-shell
+      - name: Release
+        id: release
+        if: steps.secrets.outputs.ready == 'true'
+        env: { HOSTINGER_API_TOKEN: "${{ secrets.HOSTINGER_API_TOKEN }}", HOSTINGER_USERNAME: "${{ secrets.HOSTINGER_USERNAME }}" }
+        run: |
+          REF="${{ github.event.inputs.ref || github.sha }}"
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          node deploy/deploy.mjs --ref "$REF"
+      - name: Verify live
+        id: live
+        if: steps.secrets.outputs.ready == 'true'
+        run: node deploy/verify_live.mjs --ref "${{ steps.release.outputs.ref }}"
+      - name: Roll back to the previous release
+        if: failure() && steps.release.outcome == 'success' && github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        env: { HOSTINGER_API_TOKEN: "${{ secrets.HOSTINGER_API_TOKEN }}", HOSTINGER_USERNAME: "${{ secrets.HOSTINGER_USERNAME }}" }
+        run: |
+          echo "::error::live verification failed: rolling back to ${{ github.event.before }}"
+          node deploy/deploy.mjs --ref "${{ github.event.before }}"
+          node deploy/verify_live.mjs --ref "${{ github.event.before }}"
+      - name: Report
+        if: always()
+        run: |
+          { echo "## Deploy"; for f in reports/deploy.json reports/live.json; do [ -f "$f" ] && { echo '```json'; cat "$f"; echo '```'; }; done; } >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: deploy-${{ github.sha }}, path: reports/, retention-days: 90 }

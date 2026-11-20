@@ -5,8 +5,9 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview"
+    "build": "node deploy/build.mjs",
+    "preview": "astro preview",
+    "verify": "node tests/run.mjs"
   },
   "dependencies": {
     "astro": "^5.7.0"

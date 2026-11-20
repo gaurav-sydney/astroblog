@@ -11,6 +11,14 @@ about 5 minutes (steps 1 and 13).
 
 Who runs each step: **F** is the founder and **V** is the VPS Claude Code session.
 
+**Since 20 Nov the pipeline runs steps 6 to 12:**
+- `node tests/run.mjs` runs the gates.
+- `deploy/deploy.mjs` deploys through the Hostinger API.
+- `deploy/verify_live.mjs` verifies the live site.
+- `deploy/ci/deliver.yml` runs all three on merge once it is moved to `.github/workflows/`.
+
+The connector steps below remain the fallback for when the pipeline is unavailable. See `deploy/README.md`.
+
 **Lane rule (CLAUDE.md, 16 Nov):** steps 3 and 8 to 11 use the Hostinger MCP connector. That is a fallback, and a
 script is owed to replace it: `factory site deploy` (see the operations table). Until it exists, every deploy is a
 recorded fallback use.
@@ -92,14 +100,14 @@ old JS for 7 days.
 ### 6. Build and run the agent tests (V)
 
 ```bash
-PUBLIC_BREVO_FORM_ACTION='<form action URL>' npm run build && node --test "capabilities/experience/site-assistant/tests/*.test.mjs"
+npm run build && node --test "capabilities/experience/site-assistant/tests/*.test.mjs"
 ```
 
 **Check:** the test summary.
 **Expect:**
 - `# fail 0` (10 tests for FE-122).
 - The "nothing public holds a key or an email" test passes.
-- The form URL is public; take it from the live page's form `action`.
+- The form URL is public (the live page's form `action`); it is set in `deploy/delivery.json` `build.env`, so a plain build is the release.
 
 ## Part 3: deploy (every release)
 
@@ -159,7 +167,7 @@ rm ~/.config/<site-repo>/upload.env
 
 ```bash
 D=https://<domain>
-curl -sI "$D/runtime/kernel.mjs" "$D/site.js" | grep -i -E "^(content-type|cache-control)"
+curl -sI "$D/runtime/langchain-runner.mjs" "$D/site.js" | grep -i -E "^(content-type|cache-control)"
 curl -s "$D/site-content.json" | python3 -c "import json,sys;print(len(json.load(sys.stdin)['posts']),'posts')"
 curl -s "$D/" | grep -c 'id="assistant"'
 ```

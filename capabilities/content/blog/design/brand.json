@@ -1,0 +1,68 @@
+{
+  "$comment": "The Automation Worker brand, as signed off on the Claude Design canvas. A brand refresh changes this file first; the brand gate (tests/gates/brand.test.mjs) then checks src/styles/global.css matches it and the colours still pass contrast. Colours used outside the token set must be declared under supporting; a contrast pair with a waiver warns instead of failing.",
+  "colors": {
+    "charcoal": "#15171C",
+    "charcoal-2": "#1E2128",
+    "paper": "#F5F3EE",
+    "paper-2": "#EAE7DF",
+    "teal": "#10B5A6",
+    "teal-ink": "#0B7F75",
+    "orange": "#EA6B2E",
+    "muted": "#5B5F68",
+    "line": "#D9D5CB"
+  },
+  "fonts": {
+    "display": "Space Grotesk",
+    "body": "Inter",
+    "mono": "JetBrains Mono"
+  },
+  "contrast": [
+    {
+      "fg": "charcoal",
+      "bg": "paper",
+      "min": 4.5,
+      "use": "body text"
+    },
+    {
+      "fg": "paper",
+      "bg": "charcoal",
+      "min": 4.5,
+      "use": "text on dark header and user bubbles"
+    },
+    {
+      "fg": "muted",
+      "bg": "paper",
+      "min": 4.5,
+      "use": "secondary text"
+    },
+    {
+      "fg": "teal-ink",
+      "bg": "paper",
+      "min": 4.5,
+      "use": "links on paper",
+      "waiver": "Known 19 Nov: 4.40, just under AA for body-size links. Needs a brand decision (darken teal-ink, e.g. toward #0A766D). The gate warns until then."
+    },
+    {
+      "fg": "teal",
+      "bg": "charcoal",
+      "min": 3,
+      "use": "accents and focus on dark"
+    },
+    {
+      "fg": "charcoal",
+      "bg": "teal",
+      "min": 4.5,
+      "use": "label on teal buttons"
+    }
+  ],
+  "supporting": {
+    "#FBFAF7": "chat panel and settings strip (paper, lighter)",
+    "#FFFFFF": "chat input, chips and panel surfaces",
+    "#EFEBE3": "assistant message bubbles",
+    "#B5441A": "deep orange accent (steering Send)",
+    "#F6B08C": "error badge text on charcoal",
+    "#7FE0D6": "live-model badge text on charcoal",
+    "#FAFBFC": "runtime dialog surface (upstream default kept)",
+    "#FFFBEB": "runtime notice surface (upstream default kept)"
+  }
+}

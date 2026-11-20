@@ -19,6 +19,8 @@ integrations:
 features:
   - features/BLOG-001-launch.yaml
   - features/FE-128-launch-posts.yaml
+design_artifacts:
+  - design/brand.json
 content_artifacts:
   - content/README.md
 evidence_refs:

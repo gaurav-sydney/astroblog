@@ -1,0 +1,79 @@
+{
+  "brand": "Automation Worker Assistant",
+  "networks": [
+    {
+      "name": "automation_worker_assistant",
+      "front_man": "automation_worker_guide",
+      "hocon": "./automation_worker_assistant.network.json",
+      "description": "Ask about what Automation Worker has published, get a post summarised or found by topic, and subscribe to new issues.",
+      "tags": [
+        "agentified-website"
+      ],
+      "sample_queries": [
+        "What has Automation Worker published so far?",
+        "Which post explains what an agent needs from a website?",
+        "Summarise the agentic web issue in three bullet points.",
+        "Subscribe me to new issues.",
+        "Can you build an agentic website for my business?"
+      ]
+    }
+  ],
+  "llm_router": {
+    "base_url": "https://api.otari.ai/api/v1",
+    "mock": false,
+    "byok_router": "https://api.otari.ai/api/v1"
+  },
+  "allowed_peers": [],
+  "peer_policy": {
+    "mode": "closed",
+    "deny_origins": [],
+    "note": "Local agents and page-local actions only."
+  },
+  "agent_mcp": {
+    "protocol": "nsdeploy-agent-mcp/v1",
+    "network": "automation_worker_assistant",
+    "front_man": "automation_worker_guide",
+    "available": false,
+    "reason": "This is a static bundle; a public MCP facade requires an application host."
+  },
+  "theme": {
+    "primary": "#0B7F75"
+  },
+  "linking": {
+    "protocol": "nsdeploy-link/v1",
+    "exports": [
+      {
+        "network": "automation_worker_assistant",
+        "front_man": "automation_worker_guide",
+        "aliases": [
+          "automation_worker_assistant",
+          "automation_worker_guide"
+        ],
+        "url": "automation_worker_assistant"
+      }
+    ],
+    "imports": [],
+    "link_updates": {
+      "mode": "browser-local"
+    }
+  },
+  "deployment": {
+    "mode": "static",
+    "self_contained_runtime": true,
+    "browser_mock": false,
+    "direct_byok": true,
+    "direct_mcp_requires_cors": true,
+    "public_mcp_facade": false
+  },
+  "actions": {
+    "version": 1,
+    "module": "./site-actions.js",
+    "bridge": "./bridge/action-bridge.html",
+    "agentTools": [
+      "list_posts",
+      "read_post",
+      "search_posts",
+      "subscribe"
+    ]
+  }
+}

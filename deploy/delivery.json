@@ -1,0 +1,127 @@
+{
+  "$comment": "Automation Worker delivery config: what is deployed where, and which verification gates each kind of change runs. Read by tests/run.mjs, deploy/deploy.mjs and deploy/verify_live.mjs. No secrets: the hosting account and API token come from the environment (HOSTINGER_USERNAME, HOSTINGER_API_TOKEN).",
+  "site": {
+    "domain": "automationworker.io",
+    "url": "https://automationworker.io/",
+    "network": "automation_worker_assistant"
+  },
+  "hosting": {
+    "provider": "hostinger",
+    "api": "https://developers.hostinger.com",
+    "type": "static",
+    "archive": "site.zip"
+  },
+  "build": {
+    "env": {
+      "PUBLIC_BREVO_FORM_ACTION": "https://e4c9d1de.sibforms.com/serve/MUIFAOwtDpy8-44sSojmT4c6LPQapp787WN-LD9UCe9jtjPWGko_ypq_ZbYx59yQ0hXzHEsnbqexYvD4QjsEqwOzbltaAIKOoamdherUyqFVV4E58P217q2kKhjDhBHUHUJMM4Dz2xnseyECXg372xpp2lGRvmahzJ9nd4GAR7caLAiNIUiVoiFL1_6h_mtDQPoMLwrGoR4V3TRqNg=="
+    },
+    "required_env": [
+      "PUBLIC_BREVO_FORM_ACTION"
+    ],
+    "out": "dist",
+    "$comment": "env holds public build values only (the Brevo form URL is the live page's form action). The environment overrides them."
+  },
+  "content": {
+    "posts": "src/content/posts",
+    "require_issue_order_matches_date_order": false,
+    "excerpt_max": 240
+  },
+  "viewports": [
+    [
+      1280,
+      900
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "baseline_gates": [
+    "hygiene",
+    "dist",
+    "contract"
+  ],
+  "change_types": [
+    {
+      "type": "content",
+      "why": "posts added, edited or removed",
+      "paths": [
+        "src/content/"
+      ],
+      "gates": [
+        "content",
+        "rendered"
+      ]
+    },
+    {
+      "type": "brand",
+      "why": "palette, type, motif, layout or chat styling",
+      "paths": [
+        "src/styles/",
+        "src/layouts/",
+        "src/components/NodeMotif",
+        "public/favicon.svg",
+        "capabilities/content/blog/design/"
+      ],
+      "gates": [
+        "brand",
+        "rendered"
+      ]
+    },
+    {
+      "type": "feature",
+      "why": "pages, components, the assistant, its tools or its runtime",
+      "paths": [
+        "src/pages/",
+        "src/components/",
+        "public/",
+        "capabilities/experience/",
+        "astro.config.mjs",
+        "package.json",
+        "package-lock.json"
+      ],
+      "gates": [
+        "content",
+        "brand",
+        "rendered",
+        "chat"
+      ]
+    },
+    {
+      "type": "newsletter",
+      "why": "the Brevo binding and n8n workflows (needs a FRACTEDGE-platform checkout; skipped without one)",
+      "paths": [
+        "capabilities/communications/"
+      ],
+      "gates": [
+        "newsletter"
+      ]
+    },
+    {
+      "type": "pipeline",
+      "why": "the pipeline, its tests or the deploy itself",
+      "paths": [
+        "tests/",
+        "deploy/",
+        ".github/"
+      ],
+      "gates": [
+        "content",
+        "brand",
+        "rendered",
+        "chat"
+      ]
+    }
+  ],
+  "gates": {
+    "hygiene": "no secret, token, hosting account id or personal email in any tracked file (public repo)",
+    "dist": "the committed dist/ is exactly what the source builds: what is reviewed is what is deployed",
+    "contract": "the assistant's network, manifest and tools, through the real runtime with a scripted model",
+    "content": "every post is valid, unique, built, listed for the assistant and readable by it; internal links resolve",
+    "brand": "CSS tokens match the brand file; the three fonts load; text and UI colours pass contrast",
+    "rendered": "the built site in headless Chromium at each viewport: the assistant boots, no sideways scroll, a real read; screenshots",
+    "chat": "a full chat turn against the mock provider in ok, error and empty modes: an answer, a visible error, a notice; never a blank",
+    "newsletter": "the n8n workflow files answer their fixtures on the Brevo twin",
+    "live": "after deploy: MIME and cache headers, the live files equal dist/, and the rendered check against the live site"
+  }
+}

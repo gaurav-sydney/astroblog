@@ -16,10 +16,20 @@ stays at the root, because Astro needs `src/` and `public/` there; bundles point
 | `capabilities/communications/newsletter/` | The newsletter binding (DP-033): the live Brevo form, and the n8n subscribe and broadcast workflows with contracts, fixtures and tests | Form live; n8n deployed inactive |
 | `docs/` | The runbook, the launch handoff, DP-033 and the end-to-end review ([docs/README.md](docs/README.md)) | |
 | `src/`, `public/` | The Astro site and the assistant files it serves | |
+| `dist/` | **The release artifact**, committed. It's what is live, and what a rollback redeploys. The `dist` gate keeps it equal to the source. | Equals live |
+| `tests/` | Verification: `node tests/run.mjs` picks gates by change type (content, brand, feature, newsletter, pipeline) ([tests/README.md](tests/README.md)) | |
+| `deploy/` | Delivery config, the Hostinger API deploy, live verification, rollback ([deploy/README.md](deploy/README.md)) | API deploy awaits a token |
+| `deploy/ci/deliver.yml` (staged; moves to `.github/workflows/`) | CD: verify PRs; on the default branch verify, deploy, verify live, auto-rollback | Deploy skipped until secrets are set |
 
 Factory code (the newsletter capability, the Brevo adapter and twin, the Windmill flows) stays in FRACTEDGE-platform.
 `capabilities/communications/newsletter/tests/` runs against a checkout of it:
 `FRACTEDGE_PLATFORM=~/fractedge pytest capabilities/communications/newsletter/tests`.
+
+## Delivering a change
+
+1. Branch, change the source, then `npm run build` and commit `dist/` with it.
+2. `node tests/run.mjs --changed origin/claude/blog-launch` locally. CI runs the same on the PR.
+3. Review the PR's screenshots artifact, then merge. The pipeline deploys, verifies live and rolls back on failure.
 
 ## Site
 
@@ -27,11 +37,11 @@ Astro static site. Palette charcoal `#15171C` / off-white `#F5F3EE` / teal `#10B
 Space Grotesk + Inter + JetBrains Mono; connected-node motif (`src/components/NodeMotif.astro`).
 
     npm ci
-    PUBLIC_BREVO_FORM_ACTION=https://<x>.sibforms.com/serve/<id> npm run build   # → dist/
+    npm run build      # → dist/ (public build values come from deploy/delivery.json)
 
 - Posts: `src/content/posts/*.md` (frontmatter: title, excerpt, date, issue, tags, draft).
 - Subscribe: Brevo's native form (double opt-in, list 2, redirect `/subscribed`), posted as plain HTML so it works
-  with no script. Without `PUBLIC_BREVO_FORM_ACTION` the form falls back to a mailto link.
+  with no script. Without `PUBLIC_BREVO_FORM_ACTION` (set in `deploy/delivery.json`) the form falls back to a mailto link.
 - Deploy: [`docs/runbooks/AGENTIFY-STATIC-SITE.md`](docs/runbooks/AGENTIFY-STATIC-SITE.md) (zip `dist/`, including `.htaccess`, upload, deploy, purge, check live).
 - Broadcast-on-publish (DP-033) is not wired yet and stays off until enabled.
 
