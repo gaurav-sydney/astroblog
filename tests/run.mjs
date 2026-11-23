@@ -9,39 +9,32 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { CONFIG, REPORTS, ROOT } from "./lib/config.mjs";
+import { planFor, typesFor } from "./lib/plan.mjs";
 
 const GATE_FILES = {
   hygiene: ["tests/gates/hygiene.test.mjs"],
   dist: ["tests/gates/dist.test.mjs"],
   contract: ["capabilities/experience/site-assistant/tests/agentified.test.mjs"],
+  pipeline: ["tests/gates/pipeline.test.mjs"],
   content: ["tests/gates/content.test.mjs"],
   brand: ["tests/gates/brand.test.mjs"],
   rendered: ["tests/gates/rendered.test.mjs"],
   chat: ["tests/gates/chat.test.mjs"],
   newsletter: ["tests/gates/newsletter.test.mjs"],
 };
-// dist rebuilds dist/, so it runs before every gate that reads dist/.
-const ORDER = ["hygiene", "dist", "contract", "content", "brand", "rendered", "chat", "newsletter"];
-
 const args = process.argv.slice(2);
 const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : null; };
-let types = [], gates = new Set(CONFIG.baseline_gates), changed = [];
-
-if (args.includes("--all")) Object.keys(GATE_FILES).forEach((g) => gates.add(g));
-if (opt("--gates")) gates = new Set(opt("--gates").split(","));
-if (opt("--type")) types = opt("--type").split(",");
+let types = opt("--type") ? opt("--type").split(",") : [], changed = [];
 if (opt("--changed")) {
   changed = execFileSync("git", ["diff", "--name-only", `${opt("--changed")}...HEAD`], { cwd: ROOT }).toString().split("\n").filter(Boolean);
-  const src = changed.filter((f) => !f.startsWith(`${CONFIG.build.out}/`));
-  types = CONFIG.change_types.filter((ct) => src.some((f) => ct.paths.some((p) => f.startsWith(p)))).map((ct) => ct.type);
+  types = typesFor(changed);
 }
-for (const t of types) {
-  const ct = CONFIG.change_types.find((c) => c.type === t);
-  if (!ct) { console.error(`unknown change type ${t}`); process.exit(2); }
-  ct.gates.forEach((g) => gates.add(g));
-}
+let plan;
+try { plan = opt("--gates") ? opt("--gates").split(",") : planFor(types, { all: args.includes("--all") }); }
+catch (e) { console.error(e.message); process.exit(2); }
+const unknown = plan.filter((g) => !GATE_FILES[g]);
+if (unknown.length) { console.error(`unknown gate ${unknown.join(", ")}`); process.exit(2); }
 
-const plan = ORDER.filter((g) => gates.has(g));
 console.log(`change types: ${types.join(", ") || "(none detected: baseline only)"}`);
 console.log(`gates: ${plan.join(" → ")}\n`);
 const results = [];

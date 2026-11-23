@@ -5,9 +5,10 @@ Everything about Automation Worker that doesn't live in a capability bundle.
 | Doc | What it is |
 | --- | --- |
 | [runbooks/AGENTIFY-STATIC-SITE.md](runbooks/AGENTIFY-STATIC-SITE.md) | How to agentify, build, test, deploy and verify the site live. Use it for every release. |
+| [runbooks/CI-CD-GO-LIVE.md](runbooks/CI-CD-GO-LIVE.md) | One-time: Gaurav's repo settings, the first manual go-live, the rollback drill, then auto-deploy on `main` |
 | [runbooks/LAUNCH-BLOG-HANDOFF.md](runbooks/LAUNCH-BLOG-HANDOFF.md) | The original launch handoff (requirements for the blog and the subscribe form) |
 | [decisions/DP-033-blog-newsletter-brevo-adapter.yaml](decisions/DP-033-blog-newsletter-brevo-adapter.yaml) | The newsletter increment: the Brevo adapter, subscribe and broadcast, and the n8n binding |
-| [specs/automation-worker/blog-hardening/L1.md](specs/automation-worker/blog-hardening/L1.md) | FE-129 blog hardening, increment 1: the L1, the acceptance criteria (awaiting approval) and the executor's review notes |
+| [specs/automation-worker/blog-hardening/L1.md](specs/automation-worker/blog-hardening/L1.md) | FE-129 blog hardening, increment 1: the L1, the acceptance criteria (approved 23 Nov 2026), the executor's review notes, and an L2 per milestone |
 | [reviews/2026-11-19-end-to-end-review.md](reviews/2026-11-19-end-to-end-review.md) | The factory review of the path from requirements to live: what worked, what to improve, the target process |
 
 **Copies.** The handoff and DP-033 are copies of files in FRACTEDGE-platform, taken on 20 Nov 2026. FRACTEDGE-platform keeps the source of truth:

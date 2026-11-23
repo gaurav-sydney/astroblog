@@ -1,5 +1,5 @@
 # FE-129 blog hardening, increment 1: acceptance criteria (tests-first).
-# Status: awaiting Gaurav's approval. These scenarios become gate checks before any milestone is built.
+# Status: approved by Gaurav, 23 Nov 2026. Each scenario becomes gate checks before its milestone is built.
 
 Feature: Hardened, self-verifying delivery of automationworker.io
 

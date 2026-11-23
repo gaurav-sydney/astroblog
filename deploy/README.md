@@ -8,20 +8,22 @@ The site is deployed by script through the Hostinger API. No MCP connector, no z
 | `deploy.mjs` | Zips `dist/` (at `--ref` or the working tree), gets an upload URL, uploads with TUS, deploys the archive and purges the cache. `--dry-run` builds the archive only. |
 | `verify_live.mjs` | The live gate: headers, live files equal the release, and the rendered check against the live site. It retries while the CDN catches up. |
 | `lib/zip.mjs` | A deterministic zip writer (the same `dist/` always gives the same archive) |
-| `ci/deliver.yml` | The pipeline (staged here; GitHub runs it once it is moved to `.github/workflows/`, which needs a token with the Workflows permission): verify on PRs; on the default branch, verify, deploy, verify live, and roll back automatically |
+| `../.github/workflows/deliver.yml` | The pipeline: verify on PRs; on `main`, verify, and (after go-live) deploy, verify live and roll back automatically. A manual run deploys any ref, with an optional rollback target and a rollback drill. |
 
 ## Pipeline
 
 ```
 PR ──► verify (change-type gates + baseline, screenshots) ──► review ──► merge
-merge to claude/blog-launch ──► verify ──► deploy dist@sha ──► verify live ──┬─► done
-                                                                            └─► fail: deploy dist@previous, verify live, job fails
-manual run (ref) ──► deploy dist@ref ──► verify live
+merge to main ──► verify ──► [AUTO_DEPLOY=true] deploy dist@sha ──► verify live ──┬─► done
+                                                                                   └─► fail: deploy dist@previous, verify live, job fails
+manual run (ref, rollback_ref, drill) ──► deploy dist@ref ──► verify live (drill: fail on purpose) ──► fail: deploy rollback_ref
 ```
 
 Only one deploy runs at a time (`concurrency: deploy-production`). Every run uploads `reports/` as an artifact: the summary, screenshots, `deploy.json` (commit, archive hash) and `live.json`.
 
 ## Founder setup (once)
+
+The full go-live, settings and drill, is in [docs/runbooks/CI-CD-GO-LIVE.md](../docs/runbooks/CI-CD-GO-LIVE.md).
 
 1. **Hostinger API token:** hPanel → Account → API → create a token.
 2. **Repo secrets:** GitHub → astroblog → Settings → Secrets and variables → Actions → New repository secret:
