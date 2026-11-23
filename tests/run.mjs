@@ -17,6 +17,7 @@ const GATE_FILES = {
   contract: ["capabilities/experience/site-assistant/tests/agentified.test.mjs"],
   pipeline: ["tests/gates/pipeline.test.mjs"],
   content: ["tests/gates/content.test.mjs"],
+  seo: ["capabilities/experience/seo/tests/seo.test.mjs"],
   brand: ["tests/gates/brand.test.mjs"],
   rendered: ["tests/gates/rendered.test.mjs"],
   chat: ["tests/gates/chat.test.mjs"],

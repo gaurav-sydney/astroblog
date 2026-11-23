@@ -6,6 +6,9 @@ RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
 RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
 ErrorDocument 404 /404.html
 
+# SEO (FE-129 M2): the sitemap integration writes sitemap-index.xml; send crawlers that guess /sitemap.xml there.
+RewriteRule ^sitemap\.xml$ /sitemap-index.xml [L,R=301]
+
 # Module scripts must have a JavaScript type: LiteSpeed serves .mjs as text/plain, and browsers then refuse the
 # assistant runtime's .mjs modules (FE-122: "Failed to fetch dynamically imported module").
 AddType text/javascript .js .mjs
@@ -13,7 +16,7 @@ AddType text/javascript .js .mjs
 # The assistant's files have stable names (site.js, runtime/*.js, *.json), so a long cache serves stale code after a
 # deploy: Hostinger's CDN kept the old site.js for days (FE-122). Revalidate them; hashed _astro/ CSS keeps its cache.
 <IfModule mod_headers.c>
-  <FilesMatch "\.(js|mjs|json|hocon|html)$">
+  <FilesMatch "\.(js|mjs|json|hocon|html|xml|txt)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
 </IfModule>

@@ -13,7 +13,8 @@ const { post } = Astro.props;
 const { Content } = await render(post);
 const date = post.data.date.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
 ---
-<Base title={post.data.title} description={post.data.excerpt} type="article">
+<Base title={post.data.title} description={post.data.excerpt} type="article" image={post.data.image}
+  post={{ title: post.data.title, excerpt: post.data.excerpt, date: post.data.date, tags: post.data.tags }}>
   <header class="head dark">
     <div class="wrap">
       <p class="eyebrow">Issue #{String(post.data.issue).padStart(2, '0')}</p>

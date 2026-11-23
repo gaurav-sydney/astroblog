@@ -4,7 +4,8 @@
 //   node deploy/verify_live.mjs [--ref <git-ref>] [--tries 10] [--drill]
 // --drill fails at once, on purpose and without any request, so the pipeline's rollback can be proven (FE-129 M1).
 // 1. Headers: .mjs and .js as JavaScript, no-cache on the stable-name files.
-// 2. The live files equal dist/ at the ref (every HTML page, the assistant's files, site-content.json).
+// 2. The live files equal dist/ at the ref (every HTML page, the assistant's files, site-content.json, the sitemap,
+//    RSS and robots.txt).
 // 3. The rendered gate against the live URL (SITE_URL), at every viewport.
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -28,7 +29,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const tracked = execFileSync("git", ["ls-tree", "-r", "--name-only", ref, `${out}/`], { cwd: ROOT }).toString().split("\n").filter(Boolean)
   .map((f) => f.slice(out.length + 1));
-const compare = tracked.filter((f) => /\.(html|js|mjs|json|hocon)$/.test(f) && !f.startsWith("runtime/") || f === "runtime/langchain-runner.mjs");
+const compare = tracked.filter((f) => /\.(html|js|mjs|json|hocon|xml|txt)$/.test(f) && !f.startsWith("runtime/") || f === "runtime/langchain-runner.mjs");
 const urlFor = (f) => new URL(f.replace(/(^|\/)index\.html$/, "$1"), base).href;
 
 async function check() {

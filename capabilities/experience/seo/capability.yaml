@@ -1,0 +1,18 @@
+schema_version: "0.1"
+kind: feature
+workspace: delivery
+business: automation-worker
+domain: experience
+capability_id: seo
+title: Automation Worker search and share metadata
+outcome: Search engines, feed readers and social platforms find and present automationworker.io correctly. A sitemap and robots.txt list every page worth indexing, an RSS feed carries the published posts, each post has BlogPosting structured data, and every shared link shows a large brand card. All of it stays coherent with the posts, by construction and by gate.
+status: IMPLEMENTED
+runtime_evidence_state: UNAVAILABLE
+features:
+  - features/FE-129-M2-seo.yaml
+design_artifacts:
+  - og/card.html
+task_artifacts:
+  - tests/seo.test.mjs
+  - og/render.mjs
+  - README.md
