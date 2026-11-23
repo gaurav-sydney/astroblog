@@ -15,7 +15,7 @@ Who runs each step: **F** is the founder and **V** is the VPS Claude Code sessio
 - `node tests/run.mjs` runs the gates.
 - `deploy/deploy.mjs` deploys through the Hostinger API.
 - `deploy/verify_live.mjs` verifies the live site.
-- `deploy/ci/deliver.yml` runs all three on merge once it is moved to `.github/workflows/`.
+- `.github/workflows/deliver.yml` runs all three on a merge to `main` once go-live is done ([CI-CD-GO-LIVE.md](CI-CD-GO-LIVE.md)).
 
 The connector steps below remain the fallback for when the pipeline is unavailable. See `deploy/README.md`.
 

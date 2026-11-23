@@ -89,7 +89,7 @@
     },
     {
       "type": "newsletter",
-      "why": "the Brevo binding and n8n workflows (needs a FRACTEDGE-platform checkout; skipped without one)",
+      "why": "the Brevo binding and n8n workflows (needs a FRACTEDGE-platform checkout: skipped on PRs, run nightly)",
       "paths": [
         "capabilities/communications/"
       ],
@@ -106,6 +106,7 @@
         ".github/"
       ],
       "gates": [
+        "pipeline",
         "content",
         "brand",
         "rendered",
@@ -117,6 +118,7 @@
     "hygiene": "no secret, token, hosting account id or personal email in any tracked file (public repo)",
     "dist": "the committed dist/ is exactly what the source builds: what is reviewed is what is deployed",
     "contract": "the assistant's network, manifest and tools, through the real runtime with a scripted model",
+    "pipeline": "the change-type routing and the workflow's trigger, go-live guard, rollback and drill",
     "content": "every post is valid, unique, built, listed for the assistant and readable by it; internal links resolve",
     "brand": "CSS tokens match the brand file; the three fonts load; text and UI colours pass contrast",
     "rendered": "the built site in headless Chromium at each viewport: the assistant boots, no sideways scroll, a real read; screenshots",

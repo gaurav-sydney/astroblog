@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Gate "live": after a deploy, the live site is the release. It retries for a while, because a deploy and a cache
 // purge take a little time to show.
-//   node deploy/verify_live.mjs [--ref <git-ref>] [--tries 10]
+//   node deploy/verify_live.mjs [--ref <git-ref>] [--tries 10] [--drill]
+// --drill fails at once, on purpose and without any request, so the pipeline's rollback can be proven (FE-129 M1).
 // 1. Headers: .mjs and .js as JavaScript, no-cache on the stable-name files.
 // 2. The live files equal dist/ at the ref (every HTML page, the assistant's files, site-content.json).
 // 3. The rendered gate against the live URL (SITE_URL), at every viewport.
@@ -15,6 +16,12 @@ const args = process.argv.slice(2);
 const ref = args.includes("--ref") ? args[args.indexOf("--ref") + 1] : "HEAD";
 const tries = Number(args.includes("--tries") ? args[args.indexOf("--tries") + 1] : 10);
 const base = CONFIG.site.url;
+if (args.includes("--drill")) {
+  mkdirSync(REPORTS, { recursive: true });
+  writeFileSync(join(REPORTS, "live.json"), JSON.stringify({ ref, base, drill: true, problems: ["drill"], at: new Date().toISOString() }, null, 1) + "\n");
+  console.error("drill: live check failed on purpose (the rollback step should now restore the previous release)");
+  process.exit(1);
+}
 const out = CONFIG.build.out;
 const sha = (b) => createHash("sha256").update(b).digest("hex");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

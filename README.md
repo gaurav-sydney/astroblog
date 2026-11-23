@@ -19,7 +19,7 @@ stays at the root, because Astro needs `src/` and `public/` there; bundles point
 | `dist/` | **The release artifact**, committed. It's what is live, and what a rollback redeploys. The `dist` gate keeps it equal to the source. | Equals live |
 | `tests/` | Verification: `node tests/run.mjs` picks gates by change type (content, brand, feature, newsletter, pipeline) ([tests/README.md](tests/README.md)) | |
 | `deploy/` | Delivery config, the Hostinger API deploy, live verification, rollback ([deploy/README.md](deploy/README.md)) | API deploy awaits a token |
-| `deploy/ci/deliver.yml` (staged; moves to `.github/workflows/`) | CD: verify PRs; on the default branch verify, deploy, verify live, auto-rollback | Deploy skipped until secrets are set |
+| `.github/workflows/deliver.yml` (staged at `deploy/ci/deliver.yml` until FE-130's Workflows permission) | CD: verify PRs; on `main` verify, deploy, verify live, auto-rollback ([go-live runbook](docs/runbooks/CI-CD-GO-LIVE.md)) | Deploys only after go-live (`AUTO_DEPLOY`) and with the secrets set |
 
 Factory code (the newsletter capability, the Brevo adapter and twin, the Windmill flows) stays in FRACTEDGE-platform.
 `capabilities/communications/newsletter/tests/` runs against a checkout of it:
@@ -28,7 +28,7 @@ Factory code (the newsletter capability, the Brevo adapter and twin, the Windmil
 ## Delivering a change
 
 1. Branch, change the source, then `npm run build` and commit `dist/` with it.
-2. `node tests/run.mjs --changed origin/claude/blog-launch` locally. CI runs the same on the PR.
+2. `node tests/run.mjs --changed origin/main` locally. CI runs the same on the PR into `main`.
 3. Review the PR's screenshots artifact, then merge. The pipeline deploys, verifies live and rolls back on failure.
 
 ## Site

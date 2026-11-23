@@ -11,5 +11,8 @@
   },
   "dependencies": {
     "astro": "^5.7.0"
+  },
+  "devDependencies": {
+    "yaml": "2.6.1"
   }
 }
