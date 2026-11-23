@@ -1,0 +1,5 @@
+# automationworker.io: everything is public. The sitemap lists every page worth indexing.
+User-agent: *
+Allow: /
+
+Sitemap: https://automationworker.io/sitemap-index.xml

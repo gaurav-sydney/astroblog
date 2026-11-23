@@ -1,0 +1,38 @@
+---
+// Head metadata for the SEO capability (capabilities/experience/seo): canonical, Open Graph, Twitter card, RSS link,
+// robots, and the JSON-LD graph. Base.astro renders it; the seo gate asserts on its output.
+import { SITE } from '../config';
+import { DEFAULT_IMAGE, IMAGE_SIZE, abs, graph, type PostMeta } from '../lib/seo';
+interface Props {
+  title: string;
+  description: string;
+  type: 'website' | 'article';
+  image?: string;
+  noindex?: boolean;
+  post?: Omit<PostMeta, 'url' | 'image'>;
+}
+const { title, description, type, image = DEFAULT_IMAGE, noindex = false, post } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const imageUrl = abs(image);
+const ld = graph(post ? { ...post, url: canonical, image } : undefined);
+---
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex, follow" />}
+<link rel="alternate" type="application/rss+xml" title={SITE.name} href={abs('/rss.xml')} />
+<link rel="sitemap" href={abs('/sitemap-index.xml')} />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:type" content={type} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={imageUrl} />
+<meta property="og:image:width" content={String(IMAGE_SIZE.width)} />
+<meta property="og:image:height" content={String(IMAGE_SIZE.height)} />
+<meta property="og:locale" content="en_AU" />
+{post && <meta property="article:published_time" content={post.date.toISOString()} />}
+{post && <meta property="article:author" content={SITE.author} />}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={imageUrl} />
+<script type="application/ld+json" set:html={JSON.stringify(ld)} />

@@ -6,7 +6,7 @@
     "paper": "#F5F3EE",
     "paper-2": "#EAE7DF",
     "teal": "#10B5A6",
-    "teal-ink": "#0B7F75",
+    "teal-ink": "#0A766D",
     "orange": "#EA6B2E",
     "muted": "#5B5F68",
     "line": "#D9D5CB"
@@ -40,7 +40,7 @@
       "bg": "paper",
       "min": 4.5,
       "use": "links on paper",
-      "waiver": "Known 19 Nov: 4.40, just under AA for body-size links. Needs a brand decision (darken teal-ink, e.g. toward #0A766D). The gate warns until then."
+      "note": "Was #0B7F75 (4.40). Darkened to #0A766D (4.95) on 23 Nov 2026 (FE-129 OQ-2); the waiver is gone, so the gate fails below 4.5."
     },
     {
       "fg": "teal",

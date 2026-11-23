@@ -2,7 +2,7 @@
 import { CONFIG } from "./config.mjs";
 
 // dist rebuilds dist/, so it runs before every gate that reads dist/.
-export const ORDER = ["hygiene", "dist", "contract", "pipeline", "content", "brand", "rendered", "chat", "newsletter"];
+export const ORDER = ["hygiene", "dist", "contract", "pipeline", "content", "seo", "brand", "rendered", "chat", "newsletter"];
 
 /** The change types that a list of changed files sets. Files under dist/ alone set none: the dist gate covers them. */
 export function typesFor(changed, config = CONFIG) {

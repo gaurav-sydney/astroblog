@@ -15,7 +15,7 @@
   --ns-font: var(--body);
   --ns-bg: #FBFAF7;
   --ns-fg: var(--charcoal);
-  --ns-primary: #0B7F75;          /* teal ink: 4.9:1 with white */
+  --ns-primary: #0A766D;          /* teal ink: 5.5:1 with white (FE-129 OQ-2) */
   --ns-accent: #B5441A;           /* deep orange: steering Send */
   --ns-border: var(--line);
   --ns-panelbg: #FFFFFF;

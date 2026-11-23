@@ -1,10 +1,14 @@
 ---
 import '../styles/global.css';
 import { SITE } from '../config';
-interface Props { title?: string; description?: string; type?: 'website' | 'article'; }
-const { title, description = SITE.tagline, type = 'website' } = Astro.props;
+import Seo from '../components/Seo.astro';
+import type { PostMeta } from '../lib/seo';
+interface Props {
+  title?: string; description?: string; type?: 'website' | 'article';
+  image?: string; noindex?: boolean; post?: Omit<PostMeta, 'url' | 'image'>;
+}
+const { title, description = SITE.tagline, type = 'website', image, noindex, post } = Astro.props;
 const fullTitle = title ? `${title} · ${SITE.name}` : `${SITE.name}`;
-const canonical = new URL(Astro.url.pathname, Astro.site);
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 ---
 <!doctype html>
@@ -14,11 +18,7 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{fullTitle}</title>
   <meta name="description" content={description} />
-  <link rel="canonical" href={canonical} />
-  <meta property="og:type" content={type} />
-  <meta property="og:title" content={fullTitle} />
-  <meta property="og:description" content={description} />
-  <meta property="og:url" content={canonical} />
+  <Seo title={fullTitle} description={description} type={type} image={image} noindex={noindex} post={post} />
   <meta name="theme-color" content="#15171C" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -13,6 +13,7 @@ stays at the root, because Astro needs `src/` and `public/` there; bundles point
 | `business.yaml` | The business manifest (domains: communications, content, experience) | |
 | `capabilities/content/blog/` | The blog product: launch and posts features, Hostinger integration, live evidence | Live |
 | `capabilities/experience/site-assistant/` | The agentic-web assistant (FE-122): feature, runtime map, contract tests, live checks, evidence | Live; FE-125 open |
+| `capabilities/experience/seo/` | Search and share metadata (FE-129 M2): sitemap, RSS, robots.txt, JSON-LD, Open Graph and Twitter cards, the share card, the `seo` gate | Built; live with the first deploy after go-live |
 | `capabilities/communications/newsletter/` | The newsletter binding (DP-033): the live Brevo form, and the n8n subscribe and broadcast workflows with contracts, fixtures and tests | Form live; n8n deployed inactive |
 | `docs/` | The runbook, the launch handoff, DP-033 and the end-to-end review ([docs/README.md](docs/README.md)) | |
 | `src/`, `public/` | The Astro site and the assistant files it serves | |

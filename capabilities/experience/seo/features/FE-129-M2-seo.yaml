@@ -1,0 +1,21 @@
+feature_id: FE-129-M2
+status: IMPLEMENTED
+outcome: The blog is discoverable and share-ready for monetisation, and its SEO output is gated so it grows with the content without drifting.
+acceptance:
+  - AC-M2 adding a post regenerates the sitemap and rss.xml to list exactly the non-draft set
+  - AC-M2 every post page carries valid BlogPosting JSON-LD and an og:image
+  - AC-M2 the seo gate fails if any of them is missing (negative proof 23 Nov 2026 - an og:image stripped from one post, and rss.xml removed)
+  - robots.txt allows crawling and names the sitemap index; /404 and /subscribed/ say noindex and stay out of the sitemap
+  - every indexable page has Organization and WebSite JSON-LD, a canonical and the RSS alternate link
+  - shared links render a 1200x630 summary_large_image card
+explicit_constraints:
+  - its own capability and gate, not scattered meta edits (D-3)
+  - nothing that ties a later render-adapter split to Astro (D-5) - the gate asserts on built HTML and XML only
+  - no tokens or external URLs in the share image (BL-3)
+classification: feature
+spec: ../../../../docs/specs/automation-worker/blog-hardening/L2-M2.md
+tests: tests/seo.test.mjs
+open_items:
+  - runtime evidence once the first deploy after go-live (FE-130) puts it on automationworker.io
+  - per-post share cards (frontmatter image) when a post merits one
+linear: [FE-129]

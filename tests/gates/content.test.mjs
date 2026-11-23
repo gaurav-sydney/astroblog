@@ -40,7 +40,8 @@ test("issue order follows date order (when the delivery config requires it)", (t
   const byIssue = [...published].sort((a, b) => a.data.issue - b.data.issue);
   const out = byIssue.filter((p, i) => i > 0 && String(p.data.date) < String(byIssue[i - 1].data.date)).map((p) => `#${p.data.issue} ${p.id}`);
   if (!CONFIG.content.require_issue_order_matches_date_order) {
-    if (out.length) t.diagnostic(`WARNING issues dated earlier than the issue before them: ${out.join(", ")}`);
+    // OQ-1 (23 Nov 2026): the issue number is a stable id, not a sequence; the site sorts by date. Reported, not warned.
+    if (out.length) t.diagnostic(`info: issue numbers are stable ids; dated out of issue order: ${out.join(", ")}`);
     return;
   }
   assert.deepEqual(out, []);

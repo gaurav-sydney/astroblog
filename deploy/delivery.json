@@ -69,6 +69,22 @@
       ]
     },
     {
+      "type": "seo",
+      "why": "search and share metadata: sitemap, RSS, robots.txt, JSON-LD, Open Graph and Twitter cards, the share image",
+      "paths": [
+        "capabilities/experience/seo/",
+        "src/components/Seo.astro",
+        "src/lib/seo.ts",
+        "src/pages/rss.xml.js",
+        "public/robots.txt",
+        "public/og/"
+      ],
+      "gates": [
+        "seo",
+        "content"
+      ]
+    },
+    {
       "type": "feature",
       "why": "pages, components, the assistant, its tools or its runtime",
       "paths": [
@@ -82,6 +98,7 @@
       ],
       "gates": [
         "content",
+        "seo",
         "brand",
         "rendered",
         "chat"
@@ -108,6 +125,7 @@
       "gates": [
         "pipeline",
         "content",
+        "seo",
         "brand",
         "rendered",
         "chat"
@@ -120,10 +138,11 @@
     "contract": "the assistant's network, manifest and tools, through the real runtime with a scripted model",
     "pipeline": "the change-type routing and the workflow's trigger, go-live guard, rollback and drill",
     "content": "every post is valid, unique, built, listed for the assistant and readable by it; internal links resolve",
+    "seo": "robots.txt, the sitemap and the RSS list exactly the published posts; every post has BlogPosting JSON-LD, an og:image and a Twitter card; a fixture build with an extra post and a draft stays coherent",
     "brand": "CSS tokens match the brand file; the three fonts load; text and UI colours pass contrast",
     "rendered": "the built site in headless Chromium at each viewport: the assistant boots, no sideways scroll, a real read; screenshots",
     "chat": "a full chat turn against the mock provider in ok, error and empty modes: an answer, a visible error, a notice; never a blank",
     "newsletter": "the n8n workflow files answer their fixtures on the Brevo twin",
-    "live": "after deploy: MIME and cache headers, the live files equal dist/, and the rendered check against the live site"
+    "live": "after deploy: MIME and cache headers, the live files (including the sitemap, RSS and robots.txt) equal dist/, and the rendered check against the live site"
   }
 }
