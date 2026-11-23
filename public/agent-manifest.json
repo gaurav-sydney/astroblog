@@ -37,7 +37,7 @@
     "reason": "This is a static bundle; a public MCP facade requires an application host."
   },
   "theme": {
-    "primary": "#0B7F75"
+    "primary": "#0A766D"
   },
   "linking": {
     "protocol": "nsdeploy-link/v1",
