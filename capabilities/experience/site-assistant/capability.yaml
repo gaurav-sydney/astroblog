@@ -1,0 +1,25 @@
+schema_version: "0.1"
+kind: feature
+workspace: delivery
+business: automation-worker
+domain: experience
+capability_id: site-assistant
+title: Automation Worker site assistant (open agentic web)
+outcome: A visitor, on their own model key, asks the site about its posts and gets answers grounded in the real posts, and can subscribe after confirming in a dialog; other sites' agents can discover and call the site's network.
+status: IMPLEMENTED
+runtime_evidence_state: ATTACHED
+integrations:
+  - integration_id: agentic-web-runtime
+    engine: provider-native
+    source: integrations/agentic-web/README.md
+    status: IMPLEMENTED
+    runtime_evidence_state: ATTACHED
+    evidence_refs:
+      - evidence/2026-11-19-live.md
+features:
+  - features/FE-122-site-assistant.yaml
+task_artifacts:
+  - tests/agentified.test.mjs
+  - tests/live/README.md
+evidence_refs:
+  - evidence/2026-11-19-live.md

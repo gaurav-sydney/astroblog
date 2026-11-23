@@ -1,0 +1,155 @@
+feature_id: DP-033
+outcome: >-
+  The Factory newsletter capability (capabilities/communications/newsletter) gains a Brevo vendor adapter and a
+  blog-shaped feature: a reader subscribes by double opt-in, and publishing a post sends one broadcast to the list.
+  Automation Worker (automationworker.io) binds the capability as a new Delivery business, on Brevo. Brevo keeps the
+  list, consent and unsubscribe (adopt-before-build); Windmill orchestrates and never calls Brevo; the Brevo n8n
+  subflows are authored as files and deployed to hermes-workspace (via the n8n connector fallback until DP-032's
+  n8n-by-script tool exists). Proven on twins, then on the real Brevo once the key is bound.
+classification: reusable-capability   # a capability increment: new adapter + feature + binding on existing ports
+maturity: APPROVED_FOR_PLATFORM
+status: READY_FOR_DELIVERY   # acceptance tests committed (working model 9.5): features/nl-blog.{prose.md,feature} and tests/test_nl_blog.py
+approval: >-
+  Gaurav, cloud Claude planning session, 18 Nov 2026: "I need a newsletter configuration through my factory … n8n has
+  the connection and all api is allowed." Vendor: Brevo (already connected in the FRACTEDGE n8n, agent-owned account).
+  Reuses the existing newsletter capability as a new adapter + feature + binding, not a new capability.
+
+
+business_case:
+  problem: >-
+    The newsletter capability is proven for WPCG's editorial monthly issue on SendFox/Google. The blog needs a
+    different shape — reader subscribe (double opt-in) and a broadcast when a post is published — on Brevo. The PRD
+    already names this: "tomorrow the issue might be … sent through Kit or an MCP-based tool, and only the adapter
+    changes," and the WPCG binding comment says "serving a client on Brevo or GHL is another workflow plus another
+    binding here." This increment is exactly that: a second vendor and a second feature on the same ports.
+  who_benefits:
+    - Gaurav / Automation Worker — the publication gets subscribe + broadcast without hand-wiring Brevo.
+    - "the Factory — a second real case for the newsletter capability (working model §9.5: a capability earns reuse on ≥2 cases, added without editing the core), and a reusable Brevo adapter every future site can bind."
+  value: >-
+    One vendor-neutral set of ports now answers two vendors (SendFox, Brevo) and two features (editorial issue, blog
+    subscribe/broadcast). Adding Automation Worker edits no capability core — only a new adapter, a new feature, and a
+    new delivery binding. That is the completeness test (working model §9.5 / CAPABILITY-ARCHITECTURE).
+  cost: >-
+    Four stories built by the VPS executor (S1–S4) and one delivery/ops step (S5). One Brevo DOI template (config; the
+    list already exists, id 2). The Brevo API key already lives in n8n.
+  alternatives:
+    - "Do nothing: hand-wire Brevo's form and send each post from the Brevo UI, outside the factory and untested."
+    - "A Brevo-only n8n workflow with no capability port: works once, but the next vendor or site starts again."
+    - "Move WPCG's editorial path to Brevo too: out of scope; SendFox works and the editorial shape differs."
+  fit: >-
+    Capability increment on communications/newsletter. Lane rule (CLAUDE.md, 16 Nov 2026): Claude Code builds the
+    factory and, on Atlas's behalf, delivery — Windmill and n8n alike, scripts only. Factory code (capability, Windmill
+    flows, feature, tests) deploys to Windmill factory-test; delivery code (the Brevo n8n subflows + the binding)
+    deploys to hermes-workspace via factory/windmill/tools. The n8n side has no scripted path yet, so S4 uses the n8n
+    connector as the named fallback (DP-032 is the follow-up that removes it). One executor.
+  decision_needed: >-
+    Resolved (Gaurav, 18 Nov 2026): delivery business slug `automation-worker`; publish trigger = the Astro deploy
+    webhook; Brevo list_id = 2 (automation-worker-subscribers). Still to create in Brevo: the double opt-in template
+    (templateId + redirect URL).
+
+explicit_constraints:
+  - "Adopt-before-build (PRD): Brevo owns the subscriber list, double opt-in, consent and unsubscribe. The capability never reimplements them; audience.subscribe calls Brevo's DOI endpoint and stops."
+  - "INTEGRATION-PRINCIPLES: Windmill orchestrates and never calls Brevo; capabilities name operations, never the vendor; n8n integrates. No Brevo SDK or HTTP inside orchestration/windmill/."
+  - "Lane rule (CLAUDE.md, 16 Nov 2026): Claude Code builds the factory and, on Atlas's behalf, delivery — Windmill and n8n alike — scripts only; a connector is a named fallback only, used where no script covers the need yet, each use followed by the script that removes it. Factory code → Windmill factory-test; delivery code (Brevo subflows + binding) → hermes-workspace, one flow at a time via factory/windmill/tools, never wmill sync push. Judgement ends in the typed file; everything after is generated/deployed by script."
+  - "No orphaned flow (working model §3a): every Brevo n8n subflow is reachable from a Windmill flow — the broadcast flow calls campaign.send_broadcast; a thin Windmill flow wraps audience.subscribe for operability even though its live trigger is the site form."
+  - "Lean (working model §5): no PDF, no committee review, no editorial assembly for the blog feature. One open work package; twins first; the new tests are this increment's acceptance and don't block other merges."
+  - "Secrets: the Brevo key stays in n8n's store, referenced by name. No secret in any repo file. list_id / doi_template_id are tenant config in the delivery binding, not code."
+
+explicit_decisions:
+  title: "Newsletter for the blog — Brevo adapter, subscribe + broadcast, bound for Automation Worker"
+  # The model requires a spec to open with a probe of what already exists (working model §1.2).
+  probe:
+    - "Brevo account (agent-owned) reachable from the FRACTEDGE n8n with API access — Gaurav confirms the connection exists; capture the n8n Brevo credential name."
+    - "automationworker.io authenticated + branded sender in Brevo (SPF/DKIM verified) — Gaurav reports done 18 Nov 2026."
+    - "Brevo list_id = 2 (automation-worker-subscribers) captured 18 Nov 2026. STILL TO CREATE in Brevo: a double opt-in (DOI) template and its confirmation redirect URL; capture doi_template_id."
+    - "Publish trigger decided: the Astro deploy webhook, payload {title,url,excerpt,html}."
+    - "factory/n8n/tools does NOT exist yet (DP-032 n8n-by-script is a DRAFT proposal, unbuilt). So S4 deploys via the n8n MCP connector as the named fallback (lane rule: connector allowed where no script covers the need yet); DP-032 is the follow-up script that later removes the fallback."
+    - "Read before coding: capabilities/communications/newsletter {ports.py, capabilities.py, n8n_reference.py, tests/{conftest.py,test_nl_mvp.py}, integrations/n8n/vendors/sendfox.py}; delivery/wpcg/capabilities/communications/newsletter/integrations/n8n/bindings.yaml; docs/architecture/INTEGRATION-PRINCIPLES.md."
+  size: Five stories, L1 and L2 in this one file (DP-030 size rule).
+  builds_on_existing: >-
+    capabilities/communications/newsletter/orchestration/windmill/f/newsletter/{ports.py, capabilities.py, wiring.py}
+    (the ports + vendor-neutral adapters to extend). integrations/n8n/{n8n_reference.py, vendors/sendfox.py}
+    (the reference/twin pattern to mirror for Brevo). tests/{conftest.py, test_nl_mvp.py} (the scenario-marked twin
+    harness to mirror for test_nl_blog.py). delivery/wpcg/capabilities/communications/newsletter/ (the derived_from
+    binding bundle to mirror for automation-worker). model/skilled_work.py ProviderBinding (the binding record shape).
+  D1_new_operations: >-
+    Two vendor-neutral operations added to the CAPABILITIES catalogue and ports, following the dotted naming already in
+    use (campaign.send_issue, mail.send):
+      - audience.subscribe   — add a contact to the list via double opt-in; input {email, attributes?}; Brevo owns the confirmation + consent.
+      - campaign.send_broadcast — send one broadcast for a published post; input {post:{title,url,excerpt,html}, list}; returns {campaign_id}; idempotency key = post id (one campaign per post).
+    Optional, only if asked: audience.unsubscribe. The existing campaign.send_issue is untouched (editorial path keeps working).
+  D2_ports_and_adapter: >-
+    ports.py gains an Audience Protocol (subscribe) and a Broadcast capability (send_broadcast), with models Subscriber
+    {email, attributes} and Post {title,url,excerpt,html}. capabilities.py gains CapabilityAudience and
+    CapabilityBroadcast calling audience.subscribe / campaign.send_broadcast through the same CapabilityClient
+    (CloudEvents envelope, idempotency, {status: ok|failed|unknown}; Windmill never retries). wiring.py builds them for
+    a tenant from f/newsletter/<tenant>.
+  D3_brevo_reference_and_twin: >-
+    integrations/n8n/vendors/brevo.py — reference vendor code the n8n workflow reproduces, runnable against a Brevo twin
+    in tests (mirrors vendors/sendfox.py). BrevoConfig {list_id, doi_template_id, redirect_url, from_name, from_email}.
+    audience.subscribe -> POST /contacts/doubleOptinConfirmation {email, includeListIds:[list_id], templateId,
+    redirectionUrl}. campaign.send_broadcast -> POST /emailCampaigns {name, subject, htmlContent, sender, recipients:
+    {listIds:[list_id]}} then POST /emailCampaigns/{id}/sendNow. n8n_reference.py wires Brevo into NewsletterIntegration
+    for a brevo-bound tenant and serves only the operations the tenant binds.
+  D4_blog_feature: >-
+    A new feature family for the blog, separate from NL (editorial), COMMITTED with this spec:
+    features/nl-blog.prose.md (OpenProse, NL-BLOG-AC01..AC03) and features/nl-blog.feature (two scenarios). Proven on
+    twins through the real flow files by test_nl_blog.py (pending, the executor's first red→green). Registered in
+    capability.yaml features only once its test passes, so the capability's check_feature stays green meanwhile.
+    gates.yaml as the capability's: layer_traceability + scenario_tests enforce; coverage warn.
+  D5_windmill_flows: >-
+    orchestration/windmill/f/newsletter/broadcast.flow — a thin flow (working model §3a): typed input {tenant, post},
+    one step calling campaign.send_broadcast, a run record; never retries. A thin subscribe flow wraps audience.subscribe
+    for operability. The editorial issue.flow is unchanged. Deploys to Windmill factory-test.
+  D6_delivery_binding: >-
+    delivery/automation-worker/ — a new Delivery business bundle (business.yaml) mirroring delivery/wpcg/. Under it,
+    capabilities/communications/newsletter/ with capability.yaml (derived_from: capabilities/communications/newsletter)
+    and integrations/n8n/bindings.yaml binding the brevo provider:
+      implemented_operations: [audience.subscribe, campaign.send_broadcast]
+      profiles: {audience.subscribe: {double_optin: true}, campaign.send_broadcast: {attachments: false}}
+      vendor_config: {list_id: 2, doi_template_id: <from Brevo>, redirect_url: https://automationworker.io/subscribed}
+      triggers: {newsletter.post.published: {source: astro-deploy-webhook, delivers_to: f/newsletter/broadcast}}
+    Config, not code (ProviderBinding). Subscribe's live trigger is the site's form posting to the n8n
+    audience.subscribe webhook.
+  D7_trigger: >-
+    Publish trigger (decided): the Astro deploy posts {title,url,excerpt,html} to the broadcast webhook on publish.
+  stories:
+    - {id: S1, owner: claude-code, status: done, evidence: "c174406; units in integrations/n8n/tests/test_brevo.py (8 passed)", depends_on: [], outcome: "ports.py + capabilities.py gain audience.subscribe and campaign.send_broadcast (Audience, Broadcast, Subscriber, Post); integrations/n8n/vendors/brevo.py reference + twin; n8n_reference wires Brevo for a brevo-bound tenant.", tests: "test_nl_blog.py twin units: DOI subscribe calls Brevo doubleOptinConfirmation with list+template; send_broadcast creates then sends one campaign; idempotency key replays."}
+    - {id: S2, owner: claude-code, status: blocked, evidence: "d9f9495; nl-blog 2/2 scenarios green, FEATURE_COHERENT", blocked: "factory-test deploy: no wmill CLI on this machine, and the flows' f.newsletter imports are not yet aligned with the Studio remote path (DP-002); everything else done", depends_on: [S1], outcome: "broadcast.flow (thin) + subscribe thin flow; test_nl_blog.py makes features/nl-blog.feature pass on twins; register nl-blog in capability.yaml; factory flows deploy to Windmill factory-test.", tests: "test_nl_blog.py scenarios through flow.yaml: subscribe→confirm→list; publish→campaign; re-publish→no new campaign."}
+    - {id: S3, owner: claude-code, status: done, evidence: "dbd31e0; repo_tree coherent; bindings validate as ProviderBinding", depends_on: [S1], outcome: "delivery/automation-worker/ business.yaml + capabilities/communications/newsletter/{capability.yaml, integrations/n8n/bindings.yaml} with list_id 2 and the Astro-webhook trigger; derived_from the Factory capability.", tests: "repo_tree + ProviderBinding validation; the bindings resolve for tenant automation-worker via n8n_reference.tenant_config."}
+    - {id: S4, owner: claude-code, status: blocked, evidence: "c54a4a4 (files + 11 twin tests); n8n QNMtby4pxe1Ncxlu, B3toqphkCZpHEnkg inactive via connector fallback; probe exec 266. See delivery/automation-worker/capabilities/communications/newsletter/integrations/n8n/DEPLOYED.md", blocked: "real-Brevo probe waits on the DOI template id, the sender email and the bridge credential (Gaurav)", depends_on: [S1], outcome: "Brevo n8n subflows that reproduce vendors/brevo.py (audience.subscribe webhook, campaign.send_broadcast webhook), deployed to hermes-workspace's n8n. factory/n8n/tools does not exist yet, so deploy via the n8n MCP connector as the named fallback and record it in the close-out; author the node graphs as files (integrations/n8n/*.workflow.json + .contract.yaml + .fixture.json) so DP-032 can later redeploy them by script and remove the fallback.", tests: "each webhook answers its fixture on the twin, then on the real Brevo (test list/identifiers) once the key is bound."}
+    - {id: S5, owner: delivery, status: todo, depends_on: [S2, S3, S4], outcome: "Set the f/newsletter/automation-worker resource; one real dry run (test DOI + test broadcast to a test list); enable the publish trigger with Gaurav.", tests: "dry-run evidence: a confirmed test subscriber and one test campaign id."}
+  out_of_scope: >-
+    The blog site build/deploy itself (separate delivery item — Astro site, Hostinger, hello@ forwarder). Generating
+    n8n node graphs (the node graph is a file written once and redeployed by script). A blog-factory generator
+    (earned on a 2nd blog, working model §9.5). SMS/WhatsApp. Moving the editorial WPCG path to Brevo.
+
+acceptance:
+  - "The newsletter capability exposes audience.subscribe and campaign.send_broadcast as vendor-neutral operations; no vendor name appears in orchestration/windmill/."
+  - "integrations/n8n/vendors/brevo.py reproduces both operations against a Brevo twin, checked against Brevo's API reference (developers.brevo.com) in the close-out."
+  - "The nl-blog scenarios pass on twins through the real flow files via test_nl_blog.py: subscribe→DOI→list-on-confirm; publish→one campaign; re-publish→no second campaign. (DEV gate, enforce.)"
+  - "delivery/automation-worker/ validates against the repo tree and its binding validates as ProviderBinding; adding it edits no file under capabilities/communications/newsletter/ except the two new shared operations/adapters, the brevo reference, and the nl-blog feature registration (the completeness test)."
+  - "The two Brevo n8n subflows exist as files (integrations/n8n/*.workflow.json + .contract.yaml + .fixture.json) and answer their fixtures on the twin, then on the real Brevo once the key is bound (deployed via the n8n connector fallback until DP-032's n8n-by-script tool exists)."
+  - "One real dry run: a test subscriber completes DOI into a test list, and a test post sends one broadcast to that list; evidence captured. Then the publish trigger is enabled with Gaurav."
+
+
+builds_on:
+  - {kind: doc, id: capabilities/communications/newsletter/README.md, how: "the ports/adapter/integration layering this extends"}
+  - {kind: doc, id: capabilities/communications/newsletter/design/PRD.md, how: "names Brevo/Kit as a future adapter; adopt-before-build"}
+  - {kind: doc, id: docs/architecture/INTEGRATION-PRINCIPLES.md, how: "Windmill orchestrates and never calls a vendor; n8n integrates"}
+  - {kind: doc, id: docs/decisions/proposals/DP-032-n8n-by-script.yaml, how: "the eventual n8n-by-script path that will redeploy S4's subflows and remove its connector fallback (unbuilt today)"}
+  - {kind: doc, id: docs/decisions/proposals/DP-030-spec-ladder.yaml, how: "the L1/L2-in-one-file size rule for this increment"}
+  - {kind: doc, id: delivery/wpcg/capabilities/communications/newsletter/integrations/n8n/bindings.yaml, how: "the per-tenant ProviderBinding shape mirrored for automation-worker"}
+
+tests:
+  - capabilities/communications/newsletter/features/nl-blog.prose.md  # acceptance contract, committed
+  - capabilities/communications/newsletter/features/nl-blog.feature    # acceptance scenarios, committed
+  - capabilities/communications/newsletter/tests/test_nl_blog.py       # acceptance scenarios on twins
+  - capabilities/communications/newsletter/integrations/n8n/tests/test_brevo.py   # S1 units of the Brevo reference
+  - delivery/automation-worker/capabilities/communications/newsletter/tests/test_n8n_workflows.py   # S4: the workflow files on the twin
+
+evidence_required:
+  - "test output for S1–S3 (twin units + scenarios green)"
+  - "repo_tree + ProviderBinding validation for delivery/automation-worker"
+  - "the probe execution id for both Brevo subflows (S4), on the twin and on the real Brevo"
+  - "the dry-run evidence (S5): a confirmed test subscriber and one test campaign id"

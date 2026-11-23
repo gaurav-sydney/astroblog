@@ -1,0 +1,11 @@
+feature_id: FE-128
+status: IMPLEMENTED
+outcome: The blog launches with 5 to 10 on-brand posts, so the site and its assistant have real content to answer from.
+acceptance:
+  - eight posts (issues 2 to 9) in src/content/posts, on brand and in the publication's voice
+  - every post is listed by website_list_posts and readable by website_read_post on the live site
+explicit_constraints:
+  - examples use the brand kit's anonymised framing; no client names
+open_items:
+  - post date order (renumber by date, or re-date after 18 Nov) is Gaurav's call
+linear: [FE-128]

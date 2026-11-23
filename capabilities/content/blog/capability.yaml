@@ -1,0 +1,27 @@
+schema_version: "0.1"
+kind: product
+workspace: delivery
+business: automation-worker
+domain: content
+capability_id: blog
+title: Automation Worker blog
+outcome: The Automation Worker blog is live at automationworker.io as a static Astro site in the signed-off brand, with its posts, an About page and a subscribe form that works without any backend.
+status: IMPLEMENTED
+runtime_evidence_state: ATTACHED
+integrations:
+  - integration_id: hostinger-static-site
+    engine: provider-native
+    source: integrations/hostinger/README.md
+    status: IMPLEMENTED
+    runtime_evidence_state: ATTACHED
+    evidence_refs:
+      - evidence/2026-11-19-live.md
+features:
+  - features/BLOG-001-launch.yaml
+  - features/FE-128-launch-posts.yaml
+design_artifacts:
+  - design/brand.json
+content_artifacts:
+  - content/README.md
+evidence_refs:
+  - evidence/2026-11-19-live.md

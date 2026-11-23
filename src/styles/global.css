@@ -29,6 +29,7 @@ code, pre, .mono { font-family: var(--mono); }
 .btn { display: inline-block; font: 600 15px/1 var(--display); padding: 14px 20px; border-radius: 6px; border: 0;
   background: var(--teal); color: var(--charcoal); cursor: pointer; text-decoration: none; }
 .btn:hover { background: var(--orange); color: var(--charcoal); }
+.dark a.btn, .dark a.btn:hover { color: var(--charcoal); }   /* the dark band's link colour would hide the label */
 .prose { max-width: var(--prose); }
 .prose h2 { font-size: 1.6rem; margin-top: 2.2em; }
 .prose h3 { font-size: 1.25rem; margin-top: 1.8em; }

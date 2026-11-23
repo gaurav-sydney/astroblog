@@ -1,0 +1,13 @@
+# Business parent manifest. Children are domains. Same shape as FRACTEDGE-platform delivery/<business>/business.yaml,
+# checked there by factory/studio/repo_tree.py. This repo root is delivery/automation-worker/.
+schema_version: '0.1'
+kind: business
+business: automation-worker
+title: Automation Worker (automationworker.io)
+outcome: Automation Worker publishes its blog at automationworker.io, readers subscribe by double opt-in, every published post reaches the confirmed list once, and visitors and other sites' agents can ask the site about its posts.
+domains:
+- communications
+- content
+- experience
+design_artifacts:
+- README.md

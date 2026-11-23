@@ -1,4 +1,9 @@
 node_modules/
-dist/
 .astro/
 .env
+
+# Deploy target names the hosting account: keep it out of this public repo.
+.hostinger/
+__pycache__/
+.pytest_cache/
+reports/

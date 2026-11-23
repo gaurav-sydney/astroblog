@@ -1,0 +1,29 @@
+# Which implementation answers each newsletter capability for Automation Worker (DP-033 D6). Configuration, not code:
+# records validate as ProviderBinding (model/skilled_work.py). Windmill reaches the tenant's endpoint through its
+# resource f/newsletter/automation-worker. The Brevo API key is an n8n credential, referenced by n8n only.
+tenants:
+  automation-worker:
+    bindings:
+      - binding_id: automation-worker-newsletter-brevo
+        port_id: newsletter
+        executor: n8n
+        provider: brevo
+        environment_ref: vps-dev
+        implemented_operations: [audience.subscribe, campaign.send_broadcast]
+        evidence_state: DOCUMENTED
+    profiles:                       # what the bound vendor does, so the process never checks vendor names
+      audience.subscribe: {double_optin: true}
+      campaign.send_broadcast: {attachments: false}
+    vendor_config:                  # tenant config the n8n workflows read (BrevoConfig); ids, not secrets
+      list_id: 2                    # automation-worker-subscribers
+      doi_template_id: null         # TO CREATE in Brevo (DP-033 probe): the double opt-in template id
+      redirect_url: https://automationworker.io/subscribed
+      from_name: Automation Worker
+      from_email: null              # TO CONFIRM: the authenticated automationworker.io sender in Brevo
+    triggers:                       # each event has one source
+      newsletter.post.published:    # the Astro deploy posts {"post": {title, url, excerpt, html}} on publish
+        source: astro-deploy-webhook
+        delivers_to: f/newsletter/broadcast
+      newsletter.reader.subscribed: # the site's form posts {email} to the n8n audience.subscribe webhook
+        source: automationworker.io-subscribe-form
+        delivers_to: n8n/automation-worker-newsletter-subscribe
